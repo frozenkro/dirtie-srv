@@ -2,69 +2,97 @@ package provision
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Device struct {
 	Id         string `bson:"_id,omitempty"`
-	DeviceId   string `bson:"deviceId"`
 	MacAddress string `bson:"macAddress"`
-	Created    int32  `bson:"created"`
-	LastComm   int32  `bson:"lastComm"`
+	Created    int64  `bson:"created"`
+	LastComm   int64  `bson:"lastComm"`
 }
 
-func UpsertByMacAddress(macAddress string) *Device {
-	client, ctx, dsc := connect()
-	defer dsc()
+var (
+	client *mongo.Client
+)
+
+func GetByMacAddress(macAddress string) (*Device, error) {
 	collection := client.Database("dirtie").Collection("devices")
 
 	filter := bson.M{"macAddress": macAddress}
-	update := bson.M{
-		"$set": bson.M{"lastComm": time.Now().Unix()},
-	}
 
-	upsert := true
-	after := options.After
-	opt := options.FindOneAndUpdateOptions{
-		ReturnDocument: &after,
-		Upsert:         &upsert,
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	result := collection.FindOneAndUpdate(ctx, filter, update, &opt)
+	result := collection.FindOne(ctx, filter)
 	if result.Err() != nil {
 		if result.Err() == mongo.ErrNoDocuments {
-			return nil
+			return nil, nil
 		}
 		panic(result.Err())
 	}
 
 	doc := Device{}
 	err := result.Decode(&doc)
-	if err != nil {
-		panic(err)
-	}
 
-	return &doc
+	return &doc, err
 }
 
-func connect() (*mongo.Client, context.Context, func()) {
+func InsertDevice(device *Device) (string, error) {
+	collection := client.Database("dirtie").Collection("devices")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	device.Created = time.Now().Unix()
+	device.LastComm = device.Created
+
+	result, err := collection.InsertOne(ctx, device)
+	if err != nil {
+		return "", err
+	}
+
+	if oid, ok := result.InsertedID.(primitive.ObjectID); ok {
+		return oid.Hex(), nil
+	}
+	return "", errors.New("mongo-driver InsertedID failed to assert as primitive.ObjectID")
+}
+
+func UpdateDeviceLastComm(id int) error {
+	collection := client.Database("dirtie").Collection("devices")
+
+	filter := bson.M{"_id": id}
+	update := bson.M{
+		"$set": bson.M{"lastComm": time.Now().Unix()},
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	result := collection.FindOneAndUpdate(ctx, filter, update)
+
+	return result.Err()
+}
+
+func Connect() *mongo.Client {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://mongodb:27017"))
 	if err != nil {
 		panic(err)
 	}
 
-	return client, ctx, func() {
-		disconnect(client, ctx, cancel)
-	}
+	return client
 }
 
-func disconnect(client *mongo.Client, ctx context.Context, cancel context.CancelFunc) {
+func Disconnect(client *mongo.Client) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := client.Disconnect(ctx); err != nil {
 		panic(err)
