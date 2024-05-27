@@ -1,11 +1,5 @@
 package provision
 
-import (
-	"errors"
-
-	"github.com/beevik/guid"
-)
-
 // Returns ID of provisioned device record from mongo
 func ConnectDevice(macAddr string) (string, error) {
 
@@ -31,13 +25,4 @@ func ConnectDevice(macAddr string) (string, error) {
 
 	// Return provisioned device ID
 	return oid, nil
-}
-
-func newGuid() *guid.Guid {
-	g := guid.New()
-	return g
-}
-
-func throw(msg string) error {
-	return errors.New(msg)
 }

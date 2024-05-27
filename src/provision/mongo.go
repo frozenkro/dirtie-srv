@@ -3,6 +3,8 @@ package provision
 import (
 	"context"
 	"errors"
+	"fmt"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -83,7 +85,8 @@ func Connect() *mongo.Client {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://mongodb:27017"))
+	var connSt = fmt.Sprintf("mongodb://%s:%s@mongodb:27017", os.Getenv("MONGO_USERNAME"), os.Getenv("MONGO_PASSWORD"))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(connSt))
 	if err != nil {
 		panic(err)
 	}

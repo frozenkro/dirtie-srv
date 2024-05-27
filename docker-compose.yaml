@@ -46,6 +46,8 @@ services:
       - INFLUX_TOKEN=${INFLUX_TOKEN}
       - INFLUX_ORG=${INFLUX_ORG}
       - INFLUX_DEFAULT_BUCKET=${INFLUX_DEFAULT_BUCKET}
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
     depends_on:
       - mosquitto
       - influxdb
