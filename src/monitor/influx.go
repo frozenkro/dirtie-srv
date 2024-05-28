@@ -26,7 +26,11 @@ func RecordCapacitance(deviceOid string, capacitance int64) error {
 }
 
 func Connect() *influxdb2.Client {
-	c := influxdb2.NewClient("http://influxdb:8086", os.Getenv("INFLUX_TOKEN"))
+	uri, ok := os.LookupEnv("INFLUX_URI")
+	if !ok {
+		uri = "localhost:8086"
+	}
+	c := influxdb2.NewClient("http:"+uri, os.Getenv("INFLUX_TOKEN"))
 	client = &c
 
 	return client

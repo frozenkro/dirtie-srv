@@ -85,7 +85,11 @@ func Connect() *mongo.Client {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var connSt = fmt.Sprintf("mongodb://%s:%s@mongodb:27017", os.Getenv("MONGO_USERNAME"), os.Getenv("MONGO_PASSWORD"))
+	uri, ok := os.LookupEnv("MONGO_URI")
+	if !ok {
+		uri = "localhost:27017"
+	}
+	var connSt = fmt.Sprintf("mongodb://%s:%s@%s", os.Getenv("MONGO_USERNAME"), os.Getenv("MONGO_PASSWORD"), uri)
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(connSt))
 	if err != nil {
 		panic(err)

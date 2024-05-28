@@ -5,15 +5,15 @@ services:
       - "1883:1883"
       - "9001:9001"
     volumes: 
-      - mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto:/mosquitto/config/
     
   influxdb:
     image: influxdb:2
     ports:
       - "8086:8086"
     volumes:
-      - influxdb/data:/var/lib/influxdb2
-      - influxdb/config:/etc/influxdb2
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
     env_file:
       .env
     environment:
@@ -29,7 +29,7 @@ services:
     ports:
       - "27017:27017"
     volumes: 
-      - mongodb/data:/data/db
+      - mongodb-data:/data/db
     env_file:
       .env
     environment:
@@ -48,6 +48,8 @@ services:
       - INFLUX_DEFAULT_BUCKET=${INFLUX_DEFAULT_BUCKET}
       - MONGO_USERNAME=${MONGO_USERNAME}
       - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_URI=mongodb:27017
+      - INFLUX_URI=influxdb:8086
     depends_on:
       - mosquitto
       - influxdb
@@ -59,3 +61,11 @@ services:
       - "3000:3000"
     volumes:
       - grafana:/var/lib/grafana
+
+volumes:
+  mosquitto:
+    external: true
+  mongodb-data:
+  influxdb-data:
+  influxdb-config:
+  grafana:
