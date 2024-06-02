@@ -47,7 +47,9 @@ func GetByMacAddress(macAddress string) (*Device, error) {
 }
 
 func InsertDevice(device *Device) (string, error) {
-	collection := client.Database("dirtie").Collection("devices")
+	fmt.Printf("client %t", client == nil)
+	db := client.Database("dirtie")
+	collection := db.Collection("devices")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -90,10 +92,13 @@ func Connect() *mongo.Client {
 		uri = "localhost:27017"
 	}
 	var connSt = fmt.Sprintf("mongodb://%s:%s@%s", os.Getenv("MONGO_USERNAME"), os.Getenv("MONGO_PASSWORD"), uri)
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(connSt))
+
+	clt, err := mongo.Connect(ctx, options.Client().ApplyURI(connSt))
 	if err != nil {
 		panic(err)
 	}
+	client = clt
+	fmt.Printf("client is nil: %t\n", client == nil)
 
 	return client
 }
