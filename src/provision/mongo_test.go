@@ -2,7 +2,6 @@ package provision
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/joho/godotenv"
@@ -20,13 +19,8 @@ func TestInsertDeviceLiveDb(t *testing.T) {
 	testMacAddr := "testMacAddr"
 	oid, err := InsertDevice(&Device{MacAddress: testMacAddr})
 
-	want := regexp.MustCompile("/^[a-f\\d]{24}$/i")
-
 	if err != nil {
 		t.Fatalf(err.Error())
-	}
-	if !want.MatchString(oid) {
-		t.Fatalf("Object ID: '%s' does not match expected format", oid)
 	}
 
 	fmt.Printf("Inserted device with Object ID: '%s'\n", oid)

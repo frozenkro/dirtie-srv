@@ -26,12 +26,12 @@ services:
 
   mongodb:
     image: mongo:latest
-    ports:
-      - "27017:27017"
     volumes: 
       - mongodb-data:/data/db
+    ports:
+      - "27017:27017"
     env_file:
-      .env
+      - .env
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
@@ -50,6 +50,7 @@ services:
       - MONGO_PASSWORD=${MONGO_PASSWORD}
       - MONGO_URI=mongodb:27017
       - INFLUX_URI=influxdb:8086
+      - MOSQUITTO_URI=mosquitto:1883
     depends_on:
       - mosquitto
       - influxdb

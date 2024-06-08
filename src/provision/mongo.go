@@ -29,7 +29,7 @@ func GetByMacAddress(macAddress string) (*Device, error) {
 
 	filter := bson.M{"macAddress": macAddress}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
 
 	result := collection.FindOne(ctx, filter)
@@ -47,11 +47,11 @@ func GetByMacAddress(macAddress string) (*Device, error) {
 }
 
 func InsertDevice(device *Device) (string, error) {
-	fmt.Printf("client %t", client == nil)
+	fmt.Printf("Test")
 	db := client.Database("dirtie")
 	collection := db.Collection("devices")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
 
 	device.Created = time.Now().Unix()
@@ -75,7 +75,7 @@ func UpdateDeviceLastComm(id int) error {
 	update := bson.M{
 		"$set": bson.M{"lastComm": time.Now().Unix()},
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
 
 	result := collection.FindOneAndUpdate(ctx, filter, update)
@@ -84,7 +84,7 @@ func UpdateDeviceLastComm(id int) error {
 }
 
 func Connect() *mongo.Client {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
 
 	uri, ok := os.LookupEnv("MONGO_URI")
@@ -92,19 +92,19 @@ func Connect() *mongo.Client {
 		uri = "localhost:27017"
 	}
 	var connSt = fmt.Sprintf("mongodb://%s:%s@%s", os.Getenv("MONGO_USERNAME"), os.Getenv("MONGO_PASSWORD"), uri)
+	fmt.Printf("%s\n", connSt)
 
 	clt, err := mongo.Connect(ctx, options.Client().ApplyURI(connSt))
 	if err != nil {
 		panic(err)
 	}
 	client = clt
-	fmt.Printf("client is nil: %t\n", client == nil)
 
 	return client
 }
 
 func Disconnect(client *mongo.Client) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
 	if err := client.Disconnect(ctx); err != nil {
 		panic(err)
