@@ -37,7 +37,7 @@ func attemptReconnect() {
 	panic("Failed to reconnect to mqtt broker")
 }
 
-func Connect() {
+func Init() {
 	uri, ok := os.LookupEnv("MOSQUITTO_URI")
 	if !ok {
 		uri = "localhost:1883"
@@ -53,4 +53,8 @@ func Connect() {
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}
+
+  // this just keeps the goroutine alive
+  // TODO confirm this is necessary
+  select{}
 }
