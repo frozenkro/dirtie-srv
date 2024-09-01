@@ -1,0 +1,10 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "internal/db/pgrepo/query.sql"
+    schema: "internal/db/pgrepo/schema.sql"
+    gen:
+      go:
+        package: "pgrepo"
+        out: "internal/db/pgrepo"
+        sql_package: "pgx/v5"
