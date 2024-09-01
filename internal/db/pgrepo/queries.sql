@@ -1,6 +1,6 @@
 -- name: GetUser :one
 SELECT * FROM users
-WHERE id = $1 LIMIT 1;
+WHERE user_id = $1 LIMIT 1;
 
 -- name: GetUserFromEmail :one
 SELECT * FROM users 
@@ -14,7 +14,7 @@ RETURNING *;
 -- name: ChangePassword :exec
 UPDATE users
 SET pw_hash = $2
-WHERE user_id = $1
+WHERE user_id = $1;
 
 -- name: CreateSession :exec
 INSERT INTO sessions (user_id, token, expires_at)
@@ -44,16 +44,16 @@ WHERE user_id = $1;
 -- name: RenameDevice :exec
 UPDATE devices
 SET display_name = $2
-WHERE id = $1
+WHERE device_id = $1;
 
 -- name: UpdateDeviceMacAddress :exec
 UPDATE devices
 SET mac_addr = $2
-WHERE id = $1;
+WHERE device_id = $1;
 
 -- name: CreateProvisionStaging :exec
 INSERT INTO provision_staging (device_id, contract)
-VALUES ($1, $2)
+VALUES ($1, $2);
 
 -- name: DeleteProvisionStaging :exec
 DELETE FROM provision_staging 

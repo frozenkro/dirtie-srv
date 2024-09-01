@@ -8,7 +8,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE sessions (
-  id SERIAL PRIMARY KEY,
+  session_id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   token VARCHAR(64) NOT NULL UNIQUE,
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE sessions (
 );
 
 CREATE TABLE devices (
-  id SERIAL PRIMARY KEY,
+  device_id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   mac_addr VARCHAR(17),
   display_name VARCHAR(250)
