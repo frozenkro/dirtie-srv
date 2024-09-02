@@ -1,4 +1,4 @@
-package monitor
+package db
 
 import (
 	"context"
@@ -25,7 +25,7 @@ func RecordCapacitance(deviceOid string, capacitance int64) error {
 	return err
 }
 
-func Connect() *influxdb2.Client {
+func IxConnect() *influxdb2.Client {
 	uri, ok := os.LookupEnv("INFLUX_URI")
 	if !ok {
 		uri = "localhost:8086"

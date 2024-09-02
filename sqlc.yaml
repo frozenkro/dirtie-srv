@@ -1,10 +1,10 @@
 version: "2"
 sql:
   - engine: "postgresql"
-    queries: "internal/db/pgrepo/queries.sql"
-    schema: "internal/db/pgrepo/schema.sql"
+    queries: "internal/db/sqlc/queries.sql"
+    schema: "internal/db/sqlc/schema.sql"
     gen:
       go:
-        package: "pgrepo"
-        out: "internal/db/pgrepo"
+        package: "sqlc"
+        out: "internal/db/sqlc"
         sql_package: "pgx/v5"
