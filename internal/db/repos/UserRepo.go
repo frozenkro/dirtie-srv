@@ -14,11 +14,11 @@ type UserRepo interface {
 }
 
 type userRepoImpl struct {
-  tm *TxManager
+  sr SqlRunner
 }
 
 func (r *userRepoImpl) GetUser(ctx context.Context, userId int32) (sqlc.User, error) {
-  res, err := r.tm.WithTxRes(ctx, func (q *sqlc.Queries) (interface{}, error) { 
+  res, err := r.sr.Query(ctx, func (q *sqlc.Queries) (interface{}, error) { 
     return q.GetUser(ctx, userId)
   })
 
@@ -26,14 +26,14 @@ func (r *userRepoImpl) GetUser(ctx context.Context, userId int32) (sqlc.User, er
 }
 
 func (r *userRepoImpl) GetUserFromEmail(ctx context.Context, email string) (sqlc.User, error) {
-  res, err := r.tm.WithTxRes(ctx, func (q *sqlc.Queries) (interface{}, error) {
+  res, err := r.sr.Query(ctx, func (q *sqlc.Queries) (interface{}, error) {
     return q.GetUserFromEmail(ctx, email)
   })
   return res.(sqlc.User), err
 }
 
 func (r *userRepoImpl) CreateUser(ctx context.Context, email string, pwHash []byte, name string) (sqlc.User, error) {
-  res, err := r.tm.WithTxRes(ctx, func (q *sqlc.Queries) (interface{}, error) {
+  res, err := r.sr.Query(ctx, func (q *sqlc.Queries) (interface{}, error) {
     params := sqlc.CreateUserParams{
       Email: email,
       PwHash: pwHash,
@@ -45,7 +45,7 @@ func (r *userRepoImpl) CreateUser(ctx context.Context, email string, pwHash []by
 }
 
 func (r *userRepoImpl) ChangePassword(ctx context.Context, userId int32, pwHash []byte) error {
-  return r.tm.WithTx(ctx, func (q *sqlc.Queries) error {
+  return r.sr.Execute(ctx, func (q *sqlc.Queries) error {
     params := sqlc.ChangePasswordParams{
       UserID: userId,
       PwHash: pwHash,

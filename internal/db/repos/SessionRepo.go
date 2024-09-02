@@ -15,11 +15,11 @@ type SessionRepo interface {
 }
 
 type sessionRepoImpl struct {
-  tm *TxManager
+  sr SqlRunner
 }
 
 func (r *sessionRepoImpl) CreateSession(ctx context.Context, userId int32, token string, expiresAt time.Time) error {
-  return r.tm.WithTx(ctx, func (q *sqlc.Queries) error {
+  return r.sr.Execute(ctx, func (q *sqlc.Queries) error {
     params := sqlc.CreateSessionParams{
       UserID: userId,
       Token: token,
@@ -33,14 +33,14 @@ func (r *sessionRepoImpl) CreateSession(ctx context.Context, userId int32, token
 }
 
 func (r *sessionRepoImpl) GetSession(ctx context.Context, token string) (sqlc.Session, error) {
-  res, err := r.tm.WithTxRes(ctx, func (q *sqlc.Queries) (interface{}, error) {
+  res, err := r.sr.Query(ctx, func (q *sqlc.Queries) (interface{}, error) {
     return q.GetSession(ctx, token)
   })
   return res.(sqlc.Session), err
 }
 
 func (r *sessionRepoImpl) DeleteSession(ctx context.Context, token string) error {
-  return r.tm.WithTx(ctx, func (q *sqlc.Queries) error {
+  return r.sr.Execute(ctx, func (q *sqlc.Queries) error {
     return q.DeleteSession(ctx, token)
   })
 }

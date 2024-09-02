@@ -24,18 +24,6 @@ services:
       - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUX_DEFAULT_BUCKET}
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_TOKEN}
 
-  mongodb:
-    image: mongo:latest
-    volumes: 
-      - mongodb-data:/data/db
-    ports:
-      - "27017:27017"
-    env_file:
-      - .env
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
-
   hub:
     build: .
     ports:
@@ -46,9 +34,6 @@ services:
       - INFLUX_TOKEN=${INFLUX_TOKEN}
       - INFLUX_ORG=${INFLUX_ORG}
       - INFLUX_DEFAULT_BUCKET=${INFLUX_DEFAULT_BUCKET}
-      - MONGO_USERNAME=${MONGO_USERNAME}
-      - MONGO_PASSWORD=${MONGO_PASSWORD}
-      - MONGO_URI=mongodb:27017
       - INFLUX_URI=influxdb:8086
       - MOSQUITTO_URI=mosquitto:1883
     depends_on:
@@ -77,7 +62,6 @@ services:
 volumes:
   mosquitto:
     external: true
-  mongodb-data:
   influxdb-data:
   influxdb-config:
   grafana:

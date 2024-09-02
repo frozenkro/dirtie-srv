@@ -14,11 +14,11 @@ type ProvisionStagingRepo interface {
 }
 
 type provisionStagingRepoImpl struct {
-  tm *TxManager
+  sr SqlRunner
 }
 
 func (r *provisionStagingRepoImpl) CreateProvisionStaging(ctx context.Context, deviceId int32, contract string) error {
-  return r.tm.WithTx(ctx, func (q *sqlc.Queries) error {
+  return r.sr.Execute(ctx, func (q *sqlc.Queries) error {
     params := sqlc.CreateProvisionStagingParams{
       DeviceID: deviceId,
       Contract: pgtype.Text{String: contract},
@@ -28,14 +28,14 @@ func (r *provisionStagingRepoImpl) CreateProvisionStaging(ctx context.Context, d
 }
 
 func (r *provisionStagingRepoImpl) GetProvisionStagingByContract(ctx context.Context, contract string) (sqlc.ProvisionStaging, error) {
-  res, err := r.tm.WithTxRes(ctx, func (q *sqlc.Queries) (interface{}, error) {
+  res, err := r.sr.Query(ctx, func (q *sqlc.Queries) (interface{}, error) {
     return q.GetProvisionStagingByContract(ctx, pgtype.Text{String: contract})
   })
   return res.(sqlc.ProvisionStaging), err
 }
 
 func (r *provisionStagingRepoImpl) DeleteProvisionStaging(ctx context.Context, deviceId int32) error {
-  return r.tm.WithTx(ctx, func (q *sqlc.Queries) error {
+  return r.sr.Execute(ctx, func (q *sqlc.Queries) error {
     return q.DeleteProvisionStaging(ctx, deviceId)
   })
 }

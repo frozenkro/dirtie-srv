@@ -8,6 +8,11 @@ import (
 
 )
 
+type SqlRunner interface {
+  Query(ctx context.Context, fn func(*sqlc.Queries) (interface{}, error)) (interface{}, error)
+  Execute(ctx context.Context, fn func(*sqlc.Queries) error) error
+}
+
 type TxManager struct {
   pool *pgxpool.Pool
 }
@@ -16,7 +21,7 @@ func NewTxManager(pool *pgxpool.Pool) *TxManager {
   return &TxManager{pool: pool}
 }
 
-func (tm *TxManager) WithTxRes(ctx context.Context, fn func(*sqlc.Queries) (interface{}, error)) (interface{}, error) {
+func (tm *TxManager) Query(ctx context.Context, fn func(*sqlc.Queries) (interface{}, error)) (interface{}, error) {
   tx, err := tm.pool.Begin(ctx)
   if err != nil {
     return nil, err
@@ -31,7 +36,7 @@ func (tm *TxManager) WithTxRes(ctx context.Context, fn func(*sqlc.Queries) (inte
   return nil, err
 }
 
-func (tm *TxManager) WithTx(ctx context.Context, fn func(*sqlc.Queries) error) error {
+func (tm *TxManager) Execute(ctx context.Context, fn func(*sqlc.Queries) error) error {
   tx, err := tm.pool.Begin(ctx)
   if err != nil {
     return err

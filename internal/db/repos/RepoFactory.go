@@ -1,3 +1,8 @@
+// Justification for factory pattern here is the shared
+// connection pool between all the postgres repositories.
+//
+// The singleton instance of repoFactoryImpl is holding the 
+// pool and passes it to each repository.
 package repos
 
 import (
@@ -27,17 +32,17 @@ func NewRepoFactory() (RepoFactory, error) {
 }
 
 func (f *repoFactoryImpl) NewUserRepo() UserRepo {
-  return &userRepoImpl{tm: f.tm}
+  return &userRepoImpl{sr: f.tm}
 }
 
 func (f *repoFactoryImpl) NewDeviceRepo() DeviceRepo {
-  return &deviceRepoImpl{tm: f.tm}
+  return &deviceRepoImpl{sr: f.tm}
 }
 
 func (f *repoFactoryImpl) NewSessionRepo() SessionRepo {
-  return &sessionRepoImpl{tm: f.tm}
+  return &sessionRepoImpl{sr: f.tm}
 }
 
 func (f *repoFactoryImpl) NewProvisionStagingRepo() ProvisionStagingRepo {
-  return &provisionStagingRepoImpl{tm: f.tm}
+  return &provisionStagingRepoImpl{sr: f.tm}
 }
