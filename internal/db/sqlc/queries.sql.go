@@ -129,7 +129,7 @@ func (q *Queries) DeleteSession(ctx context.Context, token string) error {
 
 const getDeviceByMacAddress = `-- name: GetDeviceByMacAddress :one
 SELECT device_id, user_id, mac_addr, display_name FROM devices
-WHERE mac_addr = $1
+WHERE mac_addr = $1 LIMIT 1
 `
 
 func (q *Queries) GetDeviceByMacAddress(ctx context.Context, macAddr pgtype.Text) (Device, error) {
@@ -172,6 +172,18 @@ func (q *Queries) GetDevicesByUser(ctx context.Context, userID int32) ([]Device,
 		return nil, err
 	}
 	return items, nil
+}
+
+const getProvisionStagingByContract = `-- name: GetProvisionStagingByContract :one
+SELECT device_id, contract FROM provision_staging
+WHERE contract = $1 LIMIT 1
+`
+
+func (q *Queries) GetProvisionStagingByContract(ctx context.Context, contract pgtype.Text) (ProvisionStaging, error) {
+	row := q.db.QueryRow(ctx, getProvisionStagingByContract, contract)
+	var i ProvisionStaging
+	err := row.Scan(&i.DeviceID, &i.Contract)
+	return i, err
 }
 
 const getSession = `-- name: GetSession :one

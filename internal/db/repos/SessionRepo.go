@@ -1,0 +1,46 @@
+package repos
+
+import (
+	"context"
+	"time"
+
+	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+type SessionRepo interface {
+  CreateSession(ctx context.Context, userId int32, token string, expiresAt time.Time) error
+  GetSession(ctx context.Context, token string) (sqlc.Session, error)
+  DeleteSession(ctx context.Context, token string) error
+}
+
+type sessionRepoImpl struct {
+  tm *TxManager
+}
+
+func (r *sessionRepoImpl) CreateSession(ctx context.Context, userId int32, token string, expiresAt time.Time) error {
+  return r.tm.WithTx(ctx, func (q *sqlc.Queries) error {
+    params := sqlc.CreateSessionParams{
+      UserID: userId,
+      Token: token,
+      ExpiresAt: pgtype.Timestamptz {
+        Time: expiresAt,
+      },
+    }
+
+    return q.CreateSession(ctx, params)
+  })
+}
+
+func (r *sessionRepoImpl) GetSession(ctx context.Context, token string) (sqlc.Session, error) {
+  res, err := r.tm.WithTxRes(ctx, func (q *sqlc.Queries) (interface{}, error) {
+    return q.GetSession(ctx, token)
+  })
+  return res.(sqlc.Session), err
+}
+
+func (r *sessionRepoImpl) DeleteSession(ctx context.Context, token string) error {
+  return r.tm.WithTx(ctx, func (q *sqlc.Queries) error {
+    return q.DeleteSession(ctx, token)
+  })
+}

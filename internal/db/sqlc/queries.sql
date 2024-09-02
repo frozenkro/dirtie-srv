@@ -35,7 +35,7 @@ RETURNING *;
 
 -- name: GetDeviceByMacAddress :one
 SELECT * FROM devices
-WHERE mac_addr = $1;
+WHERE mac_addr = $1 LIMIT 1;
 
 -- name: GetDevicesByUser :many
 SELECT * FROM devices
@@ -54,6 +54,10 @@ WHERE device_id = $1;
 -- name: CreateProvisionStaging :exec
 INSERT INTO provision_staging (device_id, contract)
 VALUES ($1, $2);
+
+-- name: GetProvisionStagingByContract :one
+SELECT * FROM provision_staging
+WHERE contract = $1 LIMIT 1;
 
 -- name: DeleteProvisionStaging :exec
 DELETE FROM provision_staging 
