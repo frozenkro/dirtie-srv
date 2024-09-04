@@ -273,3 +273,14 @@ func (q *Queries) UpdateDeviceMacAddress(ctx context.Context, arg UpdateDeviceMa
 	_, err := q.db.Exec(ctx, updateDeviceMacAddress, arg.DeviceID, arg.MacAddr)
 	return err
 }
+
+const updateLastLoginTime = `-- name: UpdateLastLoginTime :exec
+UPDATE users
+SET last_login = CURRENT_TIMESTAMP
+WHERE user_id = $1
+`
+
+func (q *Queries) UpdateLastLoginTime(ctx context.Context, userID int32) error {
+	_, err := q.db.Exec(ctx, updateLastLoginTime, userID)
+	return err
+}

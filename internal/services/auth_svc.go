@@ -2,21 +2,24 @@ package services
 
 import (
 	"context"
-  "fmt"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/frozenkro/dirtie-srv/internal/db/repos"
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthSvc struct {
   userRepo repos.UserRepo
+  sessionRepo repos.SessionRepo
 }
 
 
-func NewAuthSvc(userRepo repos.UserRepo) *AuthSvc {
-  return &AuthSvc{userRepo: userRepo}
+func NewAuthSvc(userRepo repos.UserRepo, sessionRepo repos.SessionRepo) *AuthSvc {
+  return &AuthSvc{userRepo: userRepo, sessionRepo: sessionRepo}
 }
 
 func (s *AuthSvc) CreateUser(ctx context.Context, email string, password string, name string) (*sqlc.User, error) {
@@ -42,12 +45,40 @@ func (s *AuthSvc) CreateUser(ctx context.Context, email string, password string,
 }
 
 func (s *AuthSvc) Login(ctx context.Context, email string, password string) (string, error) {
+  user, err := s.userRepo.GetUserFromEmail(ctx, email)
+  if err != nil {
+    return "", err
+  }
 
+  err = bcrypt.CompareHashAndPassword(user.PwHash, []byte(password))
+  if err != nil {
+    return "", err
+  }
 
+  err = s.userRepo.UpdateLastLoginTime(ctx, user.UserID)
+  if err != nil {
+    return "", err
+  }
 
-  return "", nil
+  token := uuid.NewString()
+  dur, err := time.ParseDuration("2h")
+  if err != nil {
+    return "", err
+  }
+  expiresAt := time.Now().Add(dur)
+  err = s.sessionRepo.CreateSession(ctx, user.UserID, token, expiresAt)
+  if err != nil {
+    return "", err
+  }
+  return token, nil
 }
 
 func (s *AuthSvc) ValidateToken(ctx context.Context, token string) (*sqlc.User, bool) {
+  session, err := s.sessionRepo.GetSession(ctx, token)
+  if err != nil || session.UserID < 1 {
+    return nil, false
+  }
+  
+  // TODO 
   return &sqlc.User{}, true
 }

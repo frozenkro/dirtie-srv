@@ -11,6 +11,7 @@ type UserRepo interface {
   GetUserFromEmail(ctx context.Context, email string) (sqlc.User, error)
   CreateUser(ctx context.Context, email string, pwHash []byte, name string) (sqlc.User, error)
   ChangePassword(ctx context.Context, userId int32, pwHash []byte) error
+  UpdateLastLoginTime(ctx context.Context, userId int32) error
 }
 
 type userRepoImpl struct {
@@ -51,5 +52,11 @@ func (r *userRepoImpl) ChangePassword(ctx context.Context, userId int32, pwHash 
       PwHash: pwHash,
     }
     return q.ChangePassword(ctx, params)
+  })
+}
+
+func (r *userRepoImpl) UpdateLastLoginTime(ctx context.Context, userId int32) error {
+  return r.sr.Execute(ctx, func (q *sqlc.Queries) error {
+    return q.UpdateLastLoginTime(ctx, userId)
   })
 }

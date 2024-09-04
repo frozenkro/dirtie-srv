@@ -16,6 +16,11 @@ UPDATE users
 SET pw_hash = $2
 WHERE user_id = $1;
 
+-- name: UpdateLastLoginTime :exec
+UPDATE users
+SET last_login = CURRENT_TIMESTAMP
+WHERE user_id = $1;
+
 -- name: CreateSession :exec
 INSERT INTO sessions (user_id, token, expires_at)
 VALUES ($1, $2, $3);
