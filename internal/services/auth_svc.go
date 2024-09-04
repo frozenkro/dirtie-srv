@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -17,6 +16,11 @@ type AuthSvc struct {
   sessionRepo repos.SessionRepo
 }
 
+var (
+  ErrInvalidToken = fmt.Errorf("Invalid session token")
+  ErrExpiredToken = fmt.Errorf("Session token expired")
+  ErrUserExists = fmt.Errorf("User Email already exists")
+)
 
 func NewAuthSvc(userRepo repos.UserRepo, sessionRepo repos.SessionRepo) *AuthSvc {
   return &AuthSvc{userRepo: userRepo, sessionRepo: sessionRepo}
@@ -29,7 +33,7 @@ func (s *AuthSvc) CreateUser(ctx context.Context, email string, password string,
     return nil, err
   }
   if existingUser.UserID > 0 {
-    return nil, errors.New(fmt.Sprintf("User Email '%v' already exists", email))
+    return nil, fmt.Errorf("Creating User with email %v: %w", email, ErrUserExists)
   }
 
   pwHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
@@ -73,12 +77,24 @@ func (s *AuthSvc) Login(ctx context.Context, email string, password string) (str
   return token, nil
 }
 
-func (s *AuthSvc) ValidateToken(ctx context.Context, token string) (*sqlc.User, bool) {
+func (s *AuthSvc) ValidateToken(ctx context.Context, token string) (*sqlc.User, error) {
   session, err := s.sessionRepo.GetSession(ctx, token)
-  if err != nil || session.UserID < 1 {
-    return nil, false
+  if err != nil {
+    return nil, err
+  }
+
+  if session.UserID < 1 {
+    return nil, fmt.Errorf("Validating token %v: %w", ErrInvalidToken)
+  }
+
+  if time.Now().After(session.ExpiresAt.Time) {
+    return nil, fmt.Errorf("Validating token %v: %w", ErrExpiredToken)
   }
   
-  // TODO 
-  return &sqlc.User{}, true
+  user, err := s.userRepo.GetUser(ctx, session.UserID)
+  if err != nil {
+    return nil, err
+  }
+
+  return &user, nil
 }
