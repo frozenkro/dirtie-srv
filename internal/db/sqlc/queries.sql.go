@@ -127,6 +127,16 @@ func (q *Queries) DeleteSession(ctx context.Context, token string) error {
 	return err
 }
 
+const deleteUserSessions = `-- name: DeleteUserSessions :exec
+DELETE FROM sessions
+WHERE user_id = $1
+`
+
+func (q *Queries) DeleteUserSessions(ctx context.Context, userID int32) error {
+	_, err := q.db.Exec(ctx, deleteUserSessions, userID)
+	return err
+}
+
 const getDeviceByMacAddress = `-- name: GetDeviceByMacAddress :one
 SELECT device_id, user_id, mac_addr, display_name FROM devices
 WHERE mac_addr = $1 LIMIT 1

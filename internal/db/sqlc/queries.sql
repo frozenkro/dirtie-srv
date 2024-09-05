@@ -33,6 +33,10 @@ WHERE token = $1 LIMIT 1;
 DELETE FROM sessions
 WHERE token = $1;
 
+-- name: DeleteUserSessions :exec
+DELETE FROM sessions
+WHERE user_id = $1;
+
 -- name: CreateDevice :one
 INSERT INTO devices (user_id, display_name)
 VALUES ($1, $2)

@@ -12,6 +12,7 @@ type SessionRepo interface {
   CreateSession(ctx context.Context, userId int32, token string, expiresAt time.Time) error
   GetSession(ctx context.Context, token string) (sqlc.Session, error)
   DeleteSession(ctx context.Context, token string) error
+  DeleteUserSessions(ctx context.Context, userId int32) error 
 }
 
 type sessionRepoImpl struct {
@@ -42,5 +43,11 @@ func (r *sessionRepoImpl) GetSession(ctx context.Context, token string) (sqlc.Se
 func (r *sessionRepoImpl) DeleteSession(ctx context.Context, token string) error {
   return r.sr.Execute(ctx, func (q *sqlc.Queries) error {
     return q.DeleteSession(ctx, token)
+  })
+}
+
+func (r *sessionRepoImpl) DeleteUserSessions(ctx context.Context, userId int32) error {
+  return r.sr.Execute(ctx, func (q *sqlc.Queries) error {
+    return q.DeleteUserSessions(ctx, userId)
   })
 }

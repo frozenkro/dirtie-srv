@@ -84,11 +84,11 @@ func (s *AuthSvc) ValidateToken(ctx context.Context, token string) (*sqlc.User, 
   }
 
   if session.UserID < 1 {
-    return nil, fmt.Errorf("Validating token %v: %w", ErrInvalidToken)
+    return nil, fmt.Errorf("Validating token %v: %w", token, ErrInvalidToken)
   }
 
   if time.Now().After(session.ExpiresAt.Time) {
-    return nil, fmt.Errorf("Validating token %v: %w", ErrExpiredToken)
+    return nil, fmt.Errorf("Validating token %v: %w", token, ErrExpiredToken)
   }
   
   user, err := s.userRepo.GetUser(ctx, session.UserID)
@@ -97,4 +97,14 @@ func (s *AuthSvc) ValidateToken(ctx context.Context, token string) (*sqlc.User, 
   }
 
   return &user, nil
+}
+
+func (s *AuthSvc) Logout(ctx context.Context, token string) error {
+  session, err := s.sessionRepo.GetSession(ctx, token)
+  if err != nil {
+    return err
+  }
+
+  err = s.sessionRepo.DeleteUserSessions(ctx, session.UserID)
+  return err
 }
