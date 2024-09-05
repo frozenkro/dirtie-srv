@@ -14,6 +14,7 @@ type RepoFactory interface {
   NewDeviceRepo() DeviceRepo
   NewSessionRepo() SessionRepo
   NewProvisionStagingRepo() ProvisionStagingRepo
+  NewPwResetRepo() PwResetRepo
 }
 
 type repoFactoryImpl struct {
@@ -45,4 +46,8 @@ func (f *repoFactoryImpl) NewSessionRepo() SessionRepo {
 
 func (f *repoFactoryImpl) NewProvisionStagingRepo() ProvisionStagingRepo {
   return &provisionStagingRepoImpl{sr: f.tm}
+}
+
+func (f *repoFactoryImpl) NewPwResetRepo() PwResetRepo {
+  return &pwResetRepoImpl{sr: f.tm}
 }
