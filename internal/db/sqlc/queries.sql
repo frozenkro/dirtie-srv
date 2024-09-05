@@ -37,6 +37,23 @@ WHERE token = $1;
 DELETE FROM sessions
 WHERE user_id = $1;
 
+-- name: CreatePwResetToken :one
+INSERT INTO pw_reset_tokens (user_id, token, expires_at)
+VALUES ($1, $2, $3)
+RETURNING *;
+
+-- name: GetPwResetToken :one
+SELECT * FROM pw_reset_tokens
+WHERE token = $1 LIMIT 1;
+
+-- name: DeletePwResetToken :exec
+DELETE FROM pw_reset_tokens
+WHERE token = $1;
+
+-- name: DeleteUserPwResetTokens :exec
+DELETE FROM pw_reset_tokens
+WHERE user_id = $1;
+
 -- name: CreateDevice :one
 INSERT INTO devices (user_id, display_name)
 VALUES ($1, $2)

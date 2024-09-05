@@ -65,6 +65,31 @@ func (q *Queries) CreateProvisionStaging(ctx context.Context, arg CreateProvisio
 	return err
 }
 
+const createPwResetToken = `-- name: CreatePwResetToken :one
+INSERT INTO pw_reset_tokens (user_id, token, expires_at)
+VALUES ($1, $2, $3)
+RETURNING pw_reset_id, user_id, token, expires_at, created_at
+`
+
+type CreatePwResetTokenParams struct {
+	UserID    int32
+	Token     string
+	ExpiresAt pgtype.Timestamptz
+}
+
+func (q *Queries) CreatePwResetToken(ctx context.Context, arg CreatePwResetTokenParams) (PwResetToken, error) {
+	row := q.db.QueryRow(ctx, createPwResetToken, arg.UserID, arg.Token, arg.ExpiresAt)
+	var i PwResetToken
+	err := row.Scan(
+		&i.PwResetID,
+		&i.UserID,
+		&i.Token,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const createSession = `-- name: CreateSession :exec
 INSERT INTO sessions (user_id, token, expires_at)
 VALUES ($1, $2, $3)
@@ -117,6 +142,16 @@ func (q *Queries) DeleteProvisionStaging(ctx context.Context, deviceID int32) er
 	return err
 }
 
+const deletePwResetToken = `-- name: DeletePwResetToken :exec
+DELETE FROM pw_reset_tokens
+WHERE token = $1
+`
+
+func (q *Queries) DeletePwResetToken(ctx context.Context, token string) error {
+	_, err := q.db.Exec(ctx, deletePwResetToken, token)
+	return err
+}
+
 const deleteSession = `-- name: DeleteSession :exec
 DELETE FROM sessions
 WHERE token = $1
@@ -124,6 +159,16 @@ WHERE token = $1
 
 func (q *Queries) DeleteSession(ctx context.Context, token string) error {
 	_, err := q.db.Exec(ctx, deleteSession, token)
+	return err
+}
+
+const deleteUserPwResetTokens = `-- name: DeleteUserPwResetTokens :exec
+DELETE FROM pw_reset_tokens
+WHERE user_id = $1
+`
+
+func (q *Queries) DeleteUserPwResetTokens(ctx context.Context, userID int32) error {
+	_, err := q.db.Exec(ctx, deleteUserPwResetTokens, userID)
 	return err
 }
 
@@ -193,6 +238,24 @@ func (q *Queries) GetProvisionStagingByContract(ctx context.Context, contract pg
 	row := q.db.QueryRow(ctx, getProvisionStagingByContract, contract)
 	var i ProvisionStaging
 	err := row.Scan(&i.DeviceID, &i.Contract)
+	return i, err
+}
+
+const getPwResetToken = `-- name: GetPwResetToken :one
+SELECT pw_reset_id, user_id, token, expires_at, created_at FROM pw_reset_tokens
+WHERE token = $1 LIMIT 1
+`
+
+func (q *Queries) GetPwResetToken(ctx context.Context, token string) (PwResetToken, error) {
+	row := q.db.QueryRow(ctx, getPwResetToken, token)
+	var i PwResetToken
+	err := row.Scan(
+		&i.PwResetID,
+		&i.UserID,
+		&i.Token,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+	)
 	return i, err
 }
 

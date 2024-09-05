@@ -20,8 +20,16 @@ type ProvisionStaging struct {
 	Contract pgtype.Text
 }
 
+type PwResetToken struct {
+	PwResetID int64
+	UserID    int32
+	Token     string
+	ExpiresAt pgtype.Timestamptz
+	CreatedAt pgtype.Timestamptz
+}
+
 type Session struct {
-	SessionID int32
+	SessionID int64
 	UserID    int32
 	Token     string
 	ExpiresAt pgtype.Timestamptz
