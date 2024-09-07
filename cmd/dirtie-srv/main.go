@@ -7,7 +7,9 @@ import (
 	"syscall"
 
 	"github.com/frozenkro/dirtie-srv/internal/api"
+	"github.com/frozenkro/dirtie-srv/internal/core"
 	// "github.com/frozenkro/dirtie-srv/internal/hub"
+
 )
 
 func main() {
@@ -16,7 +18,8 @@ func main() {
   sigChan := make(chan os.Signal, 1)
   signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-  go api.Init()
+  deps := core.NewDeps()
+  go api.Init(deps)
   // go hub.Init()
   
   <-sigChan
@@ -26,3 +29,4 @@ func main() {
 
   // TODO Any shutdown logic
 }
+
