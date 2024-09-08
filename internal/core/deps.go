@@ -7,6 +7,8 @@ import (
 
 type Deps struct {
   AuthSvc services.AuthSvc
+  DeviceSvc services.DeviceSvc
+
   DeviceRepo repos.DeviceRepo
   ProvStgRepo repos.ProvisionStagingRepo
   PwResetRepo repos.PwResetRepo
@@ -27,9 +29,11 @@ func NewDeps() *Deps {
   userRepo := rf.NewUserRepo()
 
   authSvc := services.NewAuthSvc(userRepo, sessionRepo)
+  deviceSvc := services.NewDeviceSvc(deviceRepo, provStgRepo)
   
   return &Deps{
     AuthSvc: *authSvc,
+    DeviceSvc: *deviceSvc,
     DeviceRepo: deviceRepo,
     ProvStgRepo: provStgRepo,
     PwResetRepo: pwResetRepo,
