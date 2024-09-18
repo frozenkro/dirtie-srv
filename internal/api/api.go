@@ -17,11 +17,12 @@ func Init(deps *core.Deps) {
     fmt.Fprintf(w, "request sent to root /\n")
   })
 
-  http.Handle("/", middleware.Adapt(rootHandler, 
+  http.Handle("/test", middleware.Adapt(rootHandler, 
     middleware.LogTransaction(), 
     middleware.Authorize(deps.AuthSvc),
   ))
 
+  handlers.SetupAuthHandlers(deps)
   handlers.SetupDeviceHandlers(deps)
   
   utils.LogInfo(fmt.Sprintf("Starting web server on port %v", PORT))

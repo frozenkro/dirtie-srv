@@ -27,7 +27,7 @@ services:
   hub:
     build: .
     ports:
-      - "8000:5000"
+      - "8080:8080"
     env_file:
       .env
     environment:
@@ -36,10 +36,11 @@ services:
       - INFLUX_DEFAULT_BUCKET=${INFLUX_DEFAULT_BUCKET}
       - INFLUX_URI=influxdb:8086
       - MOSQUITTO_URI=mosquitto:1883
+      - APP_HOST="container"
     depends_on:
       - mosquitto
       - influxdb
-      - mongodb
+      - postgres
 
   grafana:
     image: grafana/grafana-oss
@@ -66,4 +67,4 @@ volumes:
   influxdb-config:
   grafana:
   postgres-data:
-    driver: localhost
+    driver: local

@@ -38,7 +38,11 @@ func Authorize(authSvc services.AuthSvc) Adapter {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
       cookie, err := r.Cookie("dirtie.auth")
       if errors.Is(err, http.ErrNoCookie) {
-        w.WriteHeader(http.StatusUnauthorized)
+        http.Error(w, err.Error(), http.StatusUnauthorized)
+        return
+      } else if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
       }
 
       user, err := authSvc.ValidateToken(r.Context(), cookie.Value)

@@ -35,11 +35,13 @@ func getUserDevicesHandler(deviceSvc services.DeviceSvc) http.Handler {
     devices, err := deviceSvc.GetUserDevices(r.Context())
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
+      return
     }
 
     res, err := json.Marshal(devices)
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
+      return
     }
 
     w.Write(res)
@@ -52,16 +54,19 @@ func getDeviceHandler(deviceSvc services.DeviceSvc) http.Handler {
     deviceId, err := strconv.Atoi(deviceIdStr)
     if err != nil {
       http.Error(w, "Non-numeric device ID provided", http.StatusInternalServerError)
+      return
     }
 
     device, err := deviceSvc.GetUserDevice(r.Context(), deviceId)
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
+      return
     }
 
     res, err := json.Marshal(device)
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
+      return
     }
 
     w.Write(res)
@@ -74,11 +79,13 @@ func createDeviceProvisionHandler(deviceSvc services.DeviceSvc) http.Handler {
     displayName := params.Get("displayName")
     if displayName == "" {
       http.Error(w, core.GetMissingParamError("displayName"), http.StatusBadRequest)
+      return
     }
 
     contract, err := deviceSvc.CreateDeviceProvision(r.Context(), displayName)
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
+      return
     }
 
     w.Write([]byte(contract))

@@ -27,6 +27,9 @@ func (r *deviceRepoImpl) CreateDevice(ctx context.Context, userId int32, display
     }
     return q.CreateDevice(ctx, params)
   })
+  if err != nil || res == nil {
+    return sqlc.Device{}, err
+  }
   return res.(sqlc.Device), err
 }
 

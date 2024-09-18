@@ -7,6 +7,7 @@ require (
 	github.com/google/uuid v1.3.1
 	github.com/influxdata/influxdb-client-go/v2 v2.13.0
 	github.com/jackc/pgx/v5 v5.6.0
+	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.17.0
 )

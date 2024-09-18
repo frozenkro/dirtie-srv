@@ -23,6 +23,9 @@ func (r *userRepoImpl) GetUser(ctx context.Context, userId int32) (sqlc.User, er
     return q.GetUser(ctx, userId)
   })
 
+  if err != nil || res == nil{
+    return sqlc.User{}, err
+  }
   return res.(sqlc.User), err
 }
 
@@ -30,6 +33,10 @@ func (r *userRepoImpl) GetUserFromEmail(ctx context.Context, email string) (sqlc
   res, err := r.sr.Query(ctx, func (q *sqlc.Queries) (interface{}, error) {
     return q.GetUserFromEmail(ctx, email)
   })
+
+  if err != nil || res == nil{
+    return sqlc.User{}, err
+  }
   return res.(sqlc.User), err
 }
 
