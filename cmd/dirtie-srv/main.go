@@ -20,7 +20,7 @@ func main() {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	if os.Getenv("APP_HOST") != "container" {
-		err := godotenv.Load()
+		err := godotenv.Load("../../.env")
 		if err != nil {
 			panic("Unable to locate .env")
 		}
