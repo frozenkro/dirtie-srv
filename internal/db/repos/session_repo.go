@@ -21,12 +21,11 @@ type sessionRepoImpl struct {
 
 func (r *sessionRepoImpl) CreateSession(ctx context.Context, userId int32, token string, expiresAt time.Time) error {
   return r.sr.Execute(ctx, func (q *sqlc.Queries) error {
+    expiresAtTz := pgtype.Timestamptz { Time: expiresAt, Valid: true }
     params := sqlc.CreateSessionParams{
       UserID: userId,
       Token: token,
-      ExpiresAt: pgtype.Timestamptz {
-        Time: expiresAt,
-      },
+      ExpiresAt: expiresAtTz,
     }
 
     return q.CreateSession(ctx, params)
