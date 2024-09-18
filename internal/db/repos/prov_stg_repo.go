@@ -31,6 +31,10 @@ func (r *provisionStagingRepoImpl) GetProvisionStagingByContract(ctx context.Con
   res, err := r.sr.Query(ctx, func (q *sqlc.Queries) (interface{}, error) {
     return q.GetProvisionStagingByContract(ctx, pgtype.Text{String: contract})
   })
+
+  if err != nil || res == nil {
+    return sqlc.ProvisionStaging{}, err
+  }
   return res.(sqlc.ProvisionStaging), err
 }
 

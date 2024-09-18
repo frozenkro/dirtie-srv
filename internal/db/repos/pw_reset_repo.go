@@ -38,6 +38,10 @@ func (r *pwResetRepoImpl) GetPwResetToken(ctx context.Context, token string) (sq
   res, err := r.sr.Query(ctx, func (q *sqlc.Queries) (interface{}, error) {
     return q.GetPwResetToken(ctx, token)
   })
+
+  if err != nil || res == nil {
+    return sqlc.PwResetToken{}, err
+  }
   return res.(sqlc.PwResetToken), err
 }
 

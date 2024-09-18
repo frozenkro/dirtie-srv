@@ -49,6 +49,10 @@ func (r *userRepoImpl) CreateUser(ctx context.Context, email string, pwHash []by
     }
     return q.CreateUser(ctx, params)
   })
+
+  if err != nil || res == nil {
+    return sqlc.User{}, err
+  }
   return res.(sqlc.User), err
 }
 

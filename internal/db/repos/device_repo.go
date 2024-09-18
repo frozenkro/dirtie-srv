@@ -37,6 +37,10 @@ func (r *deviceRepoImpl) GetDeviceByMacAddress(ctx context.Context, macAddr stri
   res, err := r.sr.Query(ctx, func (q *sqlc.Queries) (interface{}, error) {
     return q.GetDeviceByMacAddress(ctx, pgtype.Text{String: macAddr})
   })
+
+  if err != nil || res == nil {
+    return sqlc.Device{}, err
+  }
   return res.(sqlc.Device), err
 }
 
@@ -44,6 +48,10 @@ func (r *deviceRepoImpl) GetDevicesByUser(ctx context.Context, userId int32) ([]
   res, err := r.sr.Query(ctx, func (q *sqlc.Queries) (interface{}, error) {
     return q.GetDevicesByUser(ctx, userId)
   })
+
+  if err != nil || res == nil {
+    return nil, err
+  }
   return res.([]sqlc.Device), err
 }
 

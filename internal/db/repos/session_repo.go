@@ -36,6 +36,9 @@ func (r *sessionRepoImpl) GetSession(ctx context.Context, token string) (sqlc.Se
   res, err := r.sr.Query(ctx, func (q *sqlc.Queries) (interface{}, error) {
     return q.GetSession(ctx, token)
   })
+  if err != nil || res == nil {
+    return sqlc.Session{}, err
+  }
   return res.(sqlc.Session), err
 }
 
