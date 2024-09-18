@@ -7,35 +7,35 @@ import (
 )
 
 var (
-  logger *log.Logger
-  hasLogger bool
+	logger    *log.Logger
+	hasLogger bool
 )
 
 const (
-  Debug = "DEBUG"
-  Info = "INFO"
-  Warn = "WARN"
-  Error = "ERROR"
+	Debug = "DEBUG"
+	Info  = "INFO"
+	Warn  = "WARN"
+	Error = "ERROR"
 )
 
 func getLogger() *log.Logger {
-  if !hasLogger {
-    logger = log.New(os.Stdout, "server: ", log.Lshortfile)
-  }
-  return logger
+	if !hasLogger {
+		logger = log.New(os.Stdout, "server: ", log.Lshortfile)
+	}
+	return logger
 }
 
 func Log(message string, level string) {
-  logger := getLogger()
-  timestamp := time.Now().UTC()
+	logger := getLogger()
+	timestamp := time.Now().UTC()
 
-  logger.Printf("%v [%v] %v\n", timestamp, level, message)
+	logger.Printf("%v [%v] %v\n", timestamp, level, message)
 }
 
 func LogInfo(message string) {
-  Log(message, Info)
+	Log(message, Info)
 }
 
 func LogErr(message string) {
-  Log(message, Error)
+	Log(message, Error)
 }

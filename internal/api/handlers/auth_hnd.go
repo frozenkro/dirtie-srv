@@ -25,10 +25,10 @@ func SetupAuthHandlers(deps *core.Deps) {
 		createUserHandler(deps.AuthSvc),
 		middleware.LogTransaction(),
 	))
-  http.Handle("POST /login", middleware.Adapt(
-    loginHandler(deps.AuthSvc),
-    middleware.LogTransaction(),
-  ))
+	http.Handle("POST /login", middleware.Adapt(
+		loginHandler(deps.AuthSvc),
+		middleware.LogTransaction(),
+	))
 }
 
 func createUserHandler(authSvc services.AuthSvc) http.Handler {
@@ -78,7 +78,7 @@ func loginHandler(authSvc services.AuthSvc) http.Handler {
 			Value: token,
 		}
 		http.SetCookie(w, &cookie)
-    w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusOK)
 	})
 }
 

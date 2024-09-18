@@ -45,8 +45,8 @@ func (m *MockUserRepo) GetUser(ctx context.Context, userID int32) (sqlc.User, er
 }
 
 func (m *MockUserRepo) ChangePassword(ctx context.Context, userId int32, pwHash []byte) error {
-  args := m.Called(ctx, userId, pwHash)
-  return args.Error(0)
+	args := m.Called(ctx, userId, pwHash)
+	return args.Error(0)
 }
 
 // Implement SessionRepo interface methods for MockSessionRepo
@@ -61,13 +61,13 @@ func (m *MockSessionRepo) GetSession(ctx context.Context, token string) (sqlc.Se
 }
 
 func (m *MockSessionRepo) DeleteSession(ctx context.Context, token string) error {
-  args := m.Called(ctx, token)
-  return args.Error(0)
+	args := m.Called(ctx, token)
+	return args.Error(0)
 }
 
 func (m *MockSessionRepo) DeleteUserSessions(ctx context.Context, userId int32) error {
-  args := m.Called(ctx, userId)
-  return args.Error(0)
+	args := m.Called(ctx, userId)
+	return args.Error(0)
 }
 
 func TestCreateUser(t *testing.T) {

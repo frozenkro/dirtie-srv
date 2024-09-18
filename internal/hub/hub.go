@@ -54,7 +54,7 @@ func Init() {
 		panic(token.Error())
 	}
 
-  // this just keeps the goroutine alive
-  // TODO confirm this is necessary
-  select{}
+	// this just keeps the goroutine alive
+	// TODO confirm this is necessary
+	select {}
 }

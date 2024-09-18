@@ -9,47 +9,47 @@ import (
 )
 
 type SessionRepo interface {
-  CreateSession(ctx context.Context, userId int32, token string, expiresAt time.Time) error
-  GetSession(ctx context.Context, token string) (sqlc.Session, error)
-  DeleteSession(ctx context.Context, token string) error
-  DeleteUserSessions(ctx context.Context, userId int32) error 
+	CreateSession(ctx context.Context, userId int32, token string, expiresAt time.Time) error
+	GetSession(ctx context.Context, token string) (sqlc.Session, error)
+	DeleteSession(ctx context.Context, token string) error
+	DeleteUserSessions(ctx context.Context, userId int32) error
 }
 
 type sessionRepoImpl struct {
-  sr SqlRunner
+	sr SqlRunner
 }
 
 func (r *sessionRepoImpl) CreateSession(ctx context.Context, userId int32, token string, expiresAt time.Time) error {
-  return r.sr.Execute(ctx, func (q *sqlc.Queries) error {
-    expiresAtTz := pgtype.Timestamptz { Time: expiresAt, Valid: true }
-    params := sqlc.CreateSessionParams{
-      UserID: userId,
-      Token: token,
-      ExpiresAt: expiresAtTz,
-    }
+	return r.sr.Execute(ctx, func(q *sqlc.Queries) error {
+		expiresAtTz := pgtype.Timestamptz{Time: expiresAt, Valid: true}
+		params := sqlc.CreateSessionParams{
+			UserID:    userId,
+			Token:     token,
+			ExpiresAt: expiresAtTz,
+		}
 
-    return q.CreateSession(ctx, params)
-  })
+		return q.CreateSession(ctx, params)
+	})
 }
 
 func (r *sessionRepoImpl) GetSession(ctx context.Context, token string) (sqlc.Session, error) {
-  res, err := r.sr.Query(ctx, func (q *sqlc.Queries) (interface{}, error) {
-    return q.GetSession(ctx, token)
-  })
-  if err != nil || res == nil {
-    return sqlc.Session{}, err
-  }
-  return res.(sqlc.Session), err
+	res, err := r.sr.Query(ctx, func(q *sqlc.Queries) (interface{}, error) {
+		return q.GetSession(ctx, token)
+	})
+	if err != nil || res == nil {
+		return sqlc.Session{}, err
+	}
+	return res.(sqlc.Session), err
 }
 
 func (r *sessionRepoImpl) DeleteSession(ctx context.Context, token string) error {
-  return r.sr.Execute(ctx, func (q *sqlc.Queries) error {
-    return q.DeleteSession(ctx, token)
-  })
+	return r.sr.Execute(ctx, func(q *sqlc.Queries) error {
+		return q.DeleteSession(ctx, token)
+	})
 }
 
 func (r *sessionRepoImpl) DeleteUserSessions(ctx context.Context, userId int32) error {
-  return r.sr.Execute(ctx, func (q *sqlc.Queries) error {
-    return q.DeleteUserSessions(ctx, userId)
-  })
+	return r.sr.Execute(ctx, func(q *sqlc.Queries) error {
+		return q.DeleteUserSessions(ctx, userId)
+	})
 }
