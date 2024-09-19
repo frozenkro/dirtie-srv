@@ -22,8 +22,8 @@ type AuthSvc struct {
 }
 
 var (
-	ErrInvalidToken = fmt.Errorf("Invalid session token")
-	ErrExpiredToken = fmt.Errorf("Session token expired")
+	ErrInvalidToken = fmt.Errorf("Invalid auth token")
+	ErrExpiredToken = fmt.Errorf("Auth token expired")
 	ErrUserExists   = fmt.Errorf("User Email already exists")
 )
 
@@ -141,6 +141,10 @@ func (s *AuthSvc) ForgotPw(ctx context.Context, userId int32) error {
 		return err
 	}
 
+  err = s.pwResetRepo.DeleteUserPwResetTokens(ctx, userId)
+  if err != nil {
+    return err
+  }
   err = s.pwResetRepo.CreatePwResetToken(ctx, userId, token, expiresAt)
   if err != nil {
     return err
@@ -205,6 +209,11 @@ func (s *AuthSvc) ChangePw(ctx context.Context, encToken string, newPw string) e
 	}
 
   s.userRepo.ChangePassword(ctx, userId, pwHash)
+  err = s.pwResetRepo.DeleteUserPwResetTokens(ctx, userId)
+  if err != nil {
+    return fmt.Errorf("An error occurred after successful password change: %w", err)
+  }
+
   return nil
 }
 
