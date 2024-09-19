@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	core_mocks "github.com/frozenkro/dirtie-srv/internal/core/mocks"
+	db_mocks "github.com/frozenkro/dirtie-srv/internal/db/mocks"
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -14,67 +16,33 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Mock repositories
-type MockUserRepo struct {
-	mock.Mock
-}
+var (
+	mockUserRepo *db_mocks.MockUserRepo
+	mockSessionRepo *db_mocks.MockSessionRepo
+  mockPwResetRepo *db_mocks.MockPwResetRepo
+  mockEmailSender *core_mocks.MockEmailSender
+  mockHtmlParser *core_mocks.MockHtmlParser
+  authSvc *AuthSvc
+)
 
-type MockSessionRepo struct {
-	mock.Mock
-}
+func setup() {
+	mockUserRepo = new(db_mocks.MockUserRepo)
+	mockSessionRepo = new(db_mocks.MockSessionRepo)
+  mockPwResetRepo = new(db_mocks.MockPwResetRepo)
+  mockEmailSender = new(core_mocks.MockEmailSender)
+  mockHtmlParser = new(core_mocks.MockHtmlParser)
 
-// Implement UserRepo interface methods for MockUserRepo
-func (m *MockUserRepo) GetUserFromEmail(ctx context.Context, email string) (sqlc.User, error) {
-	args := m.Called(ctx, email)
-	return args.Get(0).(sqlc.User), args.Error(1)
-}
-
-func (m *MockUserRepo) CreateUser(ctx context.Context, email string, pwHash []byte, name string) (sqlc.User, error) {
-	args := m.Called(ctx, email, pwHash, name)
-	return args.Get(0).(sqlc.User), args.Error(1)
-}
-
-func (m *MockUserRepo) UpdateLastLoginTime(ctx context.Context, userID int32) error {
-	args := m.Called(ctx, userID)
-	return args.Error(0)
-}
-
-func (m *MockUserRepo) GetUser(ctx context.Context, userID int32) (sqlc.User, error) {
-	args := m.Called(ctx, userID)
-	return args.Get(0).(sqlc.User), args.Error(1)
-}
-
-func (m *MockUserRepo) ChangePassword(ctx context.Context, userId int32, pwHash []byte) error {
-	args := m.Called(ctx, userId, pwHash)
-	return args.Error(0)
-}
-
-// Implement SessionRepo interface methods for MockSessionRepo
-func (m *MockSessionRepo) CreateSession(ctx context.Context, userID int32, token string, expiresAt time.Time) error {
-	args := m.Called(ctx, userID, token, expiresAt)
-	return args.Error(0)
-}
-
-func (m *MockSessionRepo) GetSession(ctx context.Context, token string) (sqlc.Session, error) {
-	args := m.Called(ctx, token)
-	return args.Get(0).(sqlc.Session), args.Error(1)
-}
-
-func (m *MockSessionRepo) DeleteSession(ctx context.Context, token string) error {
-	args := m.Called(ctx, token)
-	return args.Error(0)
-}
-
-func (m *MockSessionRepo) DeleteUserSessions(ctx context.Context, userId int32) error {
-	args := m.Called(ctx, userId)
-	return args.Error(0)
+	authSvc = NewAuthSvc(mockUserRepo, 
+    mockSessionRepo,
+    mockPwResetRepo,
+    mockHtmlParser,
+    mockEmailSender)
 }
 
 func TestCreateUser(t *testing.T) {
 	ctx := context.Background()
-	mockUserRepo := new(MockUserRepo)
-	mockSessionRepo := new(MockSessionRepo)
-	authSvc := NewAuthSvc(mockUserRepo, mockSessionRepo)
+
+  setup()
 
 	t.Run("Success", func(t *testing.T) {
 		email := "test@example.com"
@@ -111,9 +79,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	ctx := context.Background()
-	mockUserRepo := new(MockUserRepo)
-	mockSessionRepo := new(MockSessionRepo)
-	authSvc := NewAuthSvc(mockUserRepo, mockSessionRepo)
+  setup()
 
 	t.Run("Success", func(t *testing.T) {
 		email := "test@example.com"
@@ -149,9 +115,7 @@ func TestLogin(t *testing.T) {
 
 func TestValidateToken(t *testing.T) {
 	ctx := context.Background()
-	mockUserRepo := new(MockUserRepo)
-	mockSessionRepo := new(MockSessionRepo)
-	authSvc := NewAuthSvc(mockUserRepo, mockSessionRepo)
+  setup()
 
 	t.Run("ValidToken", func(t *testing.T) {
 		token := uuid.New().String()

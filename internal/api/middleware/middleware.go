@@ -48,7 +48,7 @@ func Authorize(authSvc services.AuthSvc) Adapter {
 			user, err := authSvc.ValidateToken(r.Context(), cookie.Value)
 			if isUnauthorized(user, err) {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
-        return
+				return
 			}
 
 			ctx := context.WithValue(r.Context(), "user", user)
