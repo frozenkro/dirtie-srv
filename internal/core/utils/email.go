@@ -1,6 +1,11 @@
 package utils
 
-import "context"
+import (
+	"context"
+
+	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
+)
 
 type EmailSender interface {
   SendEmail(ctx context.Context, emailAddress string, subject string, body []byte) error
@@ -9,6 +14,8 @@ type EmailSender interface {
 type EmailUtil struct {}
 
 func (u *EmailUtil) SendEmail(ctx context.Context, emailAddress string, subject string, body []byte) error {
-  //TODO 
+  from := mail.NewEmail("Dirtie Support", "dirtie.app@gmail.com")
+  to := mail.NewEmail("", emailAddress)
+
   return nil
 }
