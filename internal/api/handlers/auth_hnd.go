@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/frozenkro/dirtie-srv/internal/api/middleware"
 	"github.com/frozenkro/dirtie-srv/internal/core"
+	"github.com/frozenkro/dirtie-srv/internal/core/utils"
 	"github.com/frozenkro/dirtie-srv/internal/services"
 )
 
@@ -99,3 +101,21 @@ func logoutHandler(authSvc services.AuthSvc) http.Handler {
 		w.WriteHeader(http.StatusOK)
 	})
 }
+
+func resetPwHandler(authSvc services.AuthSvc) http.Handler {
+  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    email := r.URL.Query().Get("email")
+    err := authSvc.ForgotPw(r.Context(), email)
+
+    if err != nil {
+      utils.LogErr(err.Error())
+      if !errors.Is(err, services.ErrNoUser) {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+      }
+    }
+
+    w.WriteHeader(http.StatusOK)
+  })
+}
+

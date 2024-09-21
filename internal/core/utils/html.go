@@ -1,6 +1,7 @@
 package utils
 
 import (
+  "bytes"
 	"context"
 	"html/template"
 )
@@ -13,11 +14,11 @@ type HtmlParser interface {
 type HtmlUtil struct {}
 
 func (u *HtmlUtil) ReadFile(ctx context.Context, path string) (*template.Template, error) {
-  // TODO
-  return &template.Template{}, nil
+  return template.ParseFiles(path)
 }
 
 func (u *HtmlUtil) ReplaceVars(ctx context.Context, data any, tmp *template.Template) ([]byte, error) {
-  // TODO
-  return nil, nil
+  var buf bytes.Buffer
+  err := tmp.Execute(&buf, data)
+  return buf.Bytes(), err
 }

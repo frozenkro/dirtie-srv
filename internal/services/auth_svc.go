@@ -25,6 +25,7 @@ var (
 	ErrInvalidToken = fmt.Errorf("Invalid auth token")
 	ErrExpiredToken = fmt.Errorf("Auth token expired")
 	ErrUserExists   = fmt.Errorf("User Email already exists")
+  ErrNoUser       = fmt.Errorf("User not found")
 )
 
 func NewAuthSvc(userRepo repos.UserRepo,
@@ -134,7 +135,17 @@ func (s *AuthSvc) Logout(ctx context.Context, token string) error {
 	return err
 }
 
-func (s *AuthSvc) ForgotPw(ctx context.Context, userId int32) error {
+func (s *AuthSvc) ForgotPw(ctx context.Context, email string) error {
+  // Find user
+  user, err := s.userRepo.GetUserFromEmail(ctx, email)
+  if err != nil {
+    return err
+  }
+  if user.UserID <= 0 {
+    return fmt.Errorf("No user found for email '%v'", email, ErrNoUser)
+  }
+  userId := user.UserID
+
 	// create token
 	token, expiresAt, err := createToken()
 	if err != nil {
@@ -146,11 +157,6 @@ func (s *AuthSvc) ForgotPw(ctx context.Context, userId int32) error {
     return err
   }
   err = s.pwResetRepo.CreatePwResetToken(ctx, userId, token, expiresAt)
-  if err != nil {
-    return err
-  }
-
-  user, err := s.userRepo.GetUser(ctx, userId)
   if err != nil {
     return err
   }
@@ -167,7 +173,10 @@ func (s *AuthSvc) ForgotPw(ctx context.Context, userId int32) error {
   }
   
 	// send email
-  s.emailSender.SendEmail(ctx, user.Email, "Dirtie Password Reset Request", string(body))
+  err = s.emailSender.SendEmail(ctx, user.Email, "Dirtie Password Reset Request", string(body))
+  if err != nil {
+    return err
+  }
 
   return nil
 }
