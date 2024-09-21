@@ -4,11 +4,13 @@ import (
   "bytes"
 	"context"
 	"html/template"
+  "net/http"
 )
 
 type HtmlParser interface {
   ReadFile(ctx context.Context, path string) (*template.Template, error)
   ReplaceVars(ctx context.Context, data any, tmp *template.Template) ([]byte, error)
+  ReplaceAndWrite(ctx context.Context, data any, tmp *template.Template, w http.ResponseWriter) error
 }
 
 type HtmlUtil struct {}
@@ -21,4 +23,8 @@ func (u *HtmlUtil) ReplaceVars(ctx context.Context, data any, tmp *template.Temp
   var buf bytes.Buffer
   err := tmp.Execute(&buf, data)
   return buf.Bytes(), err
+}
+
+func (u *HtmlUtil) ReplaceAndWrite(ctx context.Context, data any, tmp *template.Template, w http.ResponseWriter) error {
+  return tmp.Execute(w, data)
 }

@@ -3,6 +3,7 @@ package mocks
 import (
   "context"
   "html/template"
+  "net/http"
 
   "github.com/stretchr/testify/mock"
 )
@@ -23,6 +24,11 @@ func (m *MockHtmlParser) ReadFile(ctx context.Context, path string) (*template.T
 func (m *MockHtmlParser) ReplaceVars(ctx context.Context, vars any, tmp *template.Template) ([]byte, error) {
   args := m.Called(ctx, vars, tmp)
   return args.Get(0).([]byte), args.Error(1)
+}
+
+func (m *MockHtmlParser) ReplaceAndWrite(ctx context.Context, data any, tmp *template.Template, w http.ResponseWriter) error {
+  args := m.Called(ctx, data, tmp, w)
+  return args.Error(0)
 }
 
 func (m *MockEmailSender) SendEmail(ctx context.Context, emailAddress string, subject string, body string) error {

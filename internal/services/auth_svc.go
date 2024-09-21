@@ -165,7 +165,7 @@ func (s *AuthSvc) ForgotPw(ctx context.Context, email string) error {
   template, err := s.htmlParser.ReadFile(ctx, "assets/resetPwEmail.html")
 
   encToken := base64.URLEncoding.EncodeToString([]byte(token))
-  resetLink := fmt.Sprintf("localhost:8080/reset-password?token=%v", encToken)
+  resetLink := fmt.Sprintf("localhost:8080/pw/change?token=%v", encToken)
   vars := &ReplaceVars{ Username: user.Name, ResetLink: resetLink }
   body, err := s.htmlParser.ReplaceVars(ctx, vars, template)
   if err != nil {
