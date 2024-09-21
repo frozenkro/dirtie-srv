@@ -167,7 +167,7 @@ func (s *AuthSvc) ForgotPw(ctx context.Context, userId int32) error {
   }
   
 	// send email
-  s.emailSender.SendEmail(ctx, user.Email, "Dirtie Password Reset Request", body)
+  s.emailSender.SendEmail(ctx, user.Email, "Dirtie Password Reset Request", string(body))
 
   return nil
 }

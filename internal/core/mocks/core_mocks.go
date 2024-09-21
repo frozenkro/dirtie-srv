@@ -25,7 +25,7 @@ func (m *MockHtmlParser) ReplaceVars(ctx context.Context, vars any, tmp *templat
   return args.Get(0).([]byte), args.Error(1)
 }
 
-func (m *MockEmailSender) SendEmail(ctx context.Context, emailAddress string, subject string, body []byte) error {
+func (m *MockEmailSender) SendEmail(ctx context.Context, emailAddress string, subject string, body string) error {
   args := m.Called(ctx, emailAddress, subject, body)
   return args.Error(0)
 }
