@@ -27,6 +27,7 @@ type LoginArgs struct {
 
 type ChangePwData struct {
   Username     string
+  Success      bool
   Error        bool
   ErrorMessage string
 }
@@ -170,6 +171,7 @@ func changePwHandler(authSvc services.AuthSvc, htmlUtil utils.HtmlParser, userRe
       return
     }
     changePwData.Username = user.Name
+    changePwData.Success = false
     changePwData.Error = false
     changePwData.ErrorMessage = ""
 
@@ -186,6 +188,8 @@ func changePwHandler(authSvc services.AuthSvc, htmlUtil utils.HtmlParser, userRe
           utils.LogErr(err.Error())
           changePwData.Error = true
           changePwData.ErrorMessage = "Something went wrong :("
+        } else {
+          changePwData.Success = true
         }
       }
 
