@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
@@ -162,7 +163,8 @@ func (s *AuthSvc) ForgotPw(ctx context.Context, email string) error {
   }
 
 	// load and fill html template
-  template, err := s.htmlParser.ReadFile(ctx, "assets/resetPwEmail.html")
+  assetsDir := os.Getenv("ASSETS_DIR")
+  template, err := s.htmlParser.ReadFile(ctx, fmt.Sprintf("%vresetPwEmail.html", assetsDir))
 
   encToken := base64.URLEncoding.EncodeToString([]byte(token))
   resetLink := fmt.Sprintf("localhost:8080/pw/change?token=%v", encToken)

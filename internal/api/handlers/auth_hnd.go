@@ -3,7 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/frozenkro/dirtie-srv/internal/api/middleware"
 	"github.com/frozenkro/dirtie-srv/internal/core"
@@ -43,11 +45,11 @@ func SetupAuthHandlers(deps *core.Deps) {
     middleware.Authorize(deps.AuthSvc),
     middleware.LogTransaction(),
   ))
-  http.Handle("POST pw/reset", middleware.Adapt(
+  http.Handle("POST /pw/reset", middleware.Adapt(
     resetPwHandler(deps.AuthSvc),
     middleware.LogTransaction(),
   ))
-  http.Handle("pw/change", middleware.Adapt(
+  http.Handle("/pw/change", middleware.Adapt(
     changePwHandler(deps.AuthSvc, deps.HtmlParser, deps.UserRepo),
     middleware.LogTransaction(),
   ))
@@ -193,7 +195,8 @@ func changePwHandler(authSvc services.AuthSvc, htmlUtil utils.HtmlParser, userRe
     }
 
     // serve page with data
-    tmpl, err := htmlUtil.ReadFile(ctx, "./assets/changePasswordPage.html")
+    assetsDir := os.Getenv("ASSETS_DIR")
+    tmpl, err := htmlUtil.ReadFile(ctx, fmt.Sprintf("%vchangePasswordPage.html", assetsDir))
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
       return

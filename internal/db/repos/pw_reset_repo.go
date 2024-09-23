@@ -26,6 +26,7 @@ func (r *pwResetRepoImpl) CreatePwResetToken(ctx context.Context, userId int32, 
 			Token:  token,
 			ExpiresAt: pgtype.Timestamptz{
 				Time: expiresAt,
+        Valid: true,
 			},
 		}
 

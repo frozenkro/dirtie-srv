@@ -37,6 +37,7 @@ services:
       - INFLUX_URI=influxdb:8086
       - MOSQUITTO_URI=mosquitto:1883
       - APP_HOST="container"
+      - ASSETS_DIR="./assets/"
     depends_on:
       - mosquitto
       - influxdb
