@@ -18,6 +18,7 @@ type Deps struct {
 
   EmailSender utils.EmailSender
   HtmlParser  utils.HtmlParser
+  UserGetter utils.UserGetter
 }
 
 func NewDeps() *Deps {
@@ -34,9 +35,10 @@ func NewDeps() *Deps {
 
   emailUtil := &utils.EmailUtil{}
   htmlUtil := &utils.HtmlUtil{}
+  ctxUtil := &utils.CtxUtil{}
 
 	authSvc := services.NewAuthSvc(userRepo, sessionRepo, pwResetRepo, htmlUtil, emailUtil)
-	deviceSvc := services.NewDeviceSvc(deviceRepo, provStgRepo)
+	deviceSvc := services.NewDeviceSvc(deviceRepo, provStgRepo, ctxUtil)
 
 	return &Deps{
 		AuthSvc:     *authSvc,
