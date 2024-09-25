@@ -8,7 +8,7 @@ import (
 
 	"github.com/frozenkro/dirtie-srv/internal/api"
 	"github.com/frozenkro/dirtie-srv/internal/core"
-	// "github.com/frozenkro/dirtie-srv/internal/hub"
+	"github.com/frozenkro/dirtie-srv/internal/hub"
 
 	"github.com/joho/godotenv"
 )
@@ -28,11 +28,9 @@ func main() {
 
 	deps := core.NewDeps()
 	go api.Init(deps)
-	// go hub.Init()
+	go hub.Init()
 
 	<-sigChan
 
 	fmt.Println("SIGTERM rcvd, shutting down")
-
-	// TODO Any shutdown logic
 }

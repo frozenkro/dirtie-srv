@@ -55,6 +55,5 @@ func Init() {
 	}
 
 	// this just keeps the goroutine alive
-	// TODO confirm this is necessary
 	select {}
 }
