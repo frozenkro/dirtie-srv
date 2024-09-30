@@ -17,32 +17,32 @@ import (
 )
 
 var (
-	mockUserRepo *db_mocks.MockUserRepo
+	mockUserRepo    *db_mocks.MockUserRepo
 	mockSessionRepo *db_mocks.MockSessionRepo
-  mockPwResetRepo *db_mocks.MockPwResetRepo
-  mockEmailSender *core_mocks.MockEmailSender
-  mockHtmlParser *core_mocks.MockHtmlParser
-  authSvc *AuthSvc
+	mockPwResetRepo *db_mocks.MockPwResetRepo
+	mockEmailSender *core_mocks.MockEmailSender
+	mockHtmlParser  *core_mocks.MockHtmlParser
+	authSvc         *AuthSvc
 )
 
 func setup() {
 	mockUserRepo = new(db_mocks.MockUserRepo)
 	mockSessionRepo = new(db_mocks.MockSessionRepo)
-  mockPwResetRepo = new(db_mocks.MockPwResetRepo)
-  mockEmailSender = new(core_mocks.MockEmailSender)
-  mockHtmlParser = new(core_mocks.MockHtmlParser)
+	mockPwResetRepo = new(db_mocks.MockPwResetRepo)
+	mockEmailSender = new(core_mocks.MockEmailSender)
+	mockHtmlParser = new(core_mocks.MockHtmlParser)
 
-	authSvc = NewAuthSvc(mockUserRepo, 
-    mockSessionRepo,
-    mockPwResetRepo,
-    mockHtmlParser,
-    mockEmailSender)
+	authSvc = NewAuthSvc(mockUserRepo,
+		mockSessionRepo,
+		mockPwResetRepo,
+		mockHtmlParser,
+		mockEmailSender)
 }
 
 func TestCreateUser(t *testing.T) {
 	ctx := context.Background()
 
-  setup()
+	setup()
 
 	t.Run("Success", func(t *testing.T) {
 		email := "test@example.com"
@@ -79,7 +79,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	ctx := context.Background()
-  setup()
+	setup()
 
 	t.Run("Success", func(t *testing.T) {
 		email := "test@example.com"
@@ -115,7 +115,7 @@ func TestLogin(t *testing.T) {
 
 func TestValidateToken(t *testing.T) {
 	ctx := context.Background()
-  setup()
+	setup()
 
 	t.Run("ValidToken", func(t *testing.T) {
 		token := uuid.New().String()

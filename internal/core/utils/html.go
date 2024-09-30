@@ -1,30 +1,30 @@
 package utils
 
 import (
-  "bytes"
+	"bytes"
 	"context"
 	"html/template"
-  "net/http"
+	"net/http"
 )
 
 type HtmlParser interface {
-  ReadFile(ctx context.Context, path string) (*template.Template, error)
-  ReplaceVars(ctx context.Context, data any, tmp *template.Template) ([]byte, error)
-  ReplaceAndWrite(ctx context.Context, data any, tmp *template.Template, w http.ResponseWriter) error
+	ReadFile(ctx context.Context, path string) (*template.Template, error)
+	ReplaceVars(ctx context.Context, data any, tmp *template.Template) ([]byte, error)
+	ReplaceAndWrite(ctx context.Context, data any, tmp *template.Template, w http.ResponseWriter) error
 }
 
-type HtmlUtil struct {}
+type HtmlUtil struct{}
 
 func (u *HtmlUtil) ReadFile(ctx context.Context, path string) (*template.Template, error) {
-  return template.ParseFiles(path)
+	return template.ParseFiles(path)
 }
 
 func (u *HtmlUtil) ReplaceVars(ctx context.Context, data any, tmp *template.Template) ([]byte, error) {
-  var buf bytes.Buffer
-  err := tmp.Execute(&buf, data)
-  return buf.Bytes(), err
+	var buf bytes.Buffer
+	err := tmp.Execute(&buf, data)
+	return buf.Bytes(), err
 }
 
 func (u *HtmlUtil) ReplaceAndWrite(ctx context.Context, data any, tmp *template.Template, w http.ResponseWriter) error {
-  return tmp.Execute(w, data)
+	return tmp.Execute(w, data)
 }

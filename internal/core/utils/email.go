@@ -9,17 +9,17 @@ import (
 )
 
 type EmailSender interface {
-  SendEmail(ctx context.Context, emailAddress string, subject string, body string) error
+	SendEmail(ctx context.Context, emailAddress string, subject string, body string) error
 }
 
-type EmailUtil struct {}
+type EmailUtil struct{}
 
 func (u *EmailUtil) SendEmail(ctx context.Context, emailAddress string, subject string, body string) error {
-  from := mail.NewEmail("Dirtie Support", "dirtie.app@gmail.com")
-  to := mail.NewEmail("", emailAddress)
+	from := mail.NewEmail("Dirtie Support", "dirtie.app@gmail.com")
+	to := mail.NewEmail("", emailAddress)
 
-  message := mail.NewSingleEmail(from, subject, to, body, body)
-  client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
-  _, err := client.SendWithContext(ctx, message)
-  return err
+	message := mail.NewSingleEmail(from, subject, to, body, body)
+	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+	_, err := client.SendWithContext(ctx, message)
+	return err
 }

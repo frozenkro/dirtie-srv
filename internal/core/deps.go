@@ -17,12 +17,12 @@ type Deps struct {
 	SessionRepo repos.SessionRepo
 	UserRepo    repos.UserRepo
 
-  DeviceDataRecorder db.DeviceDataRecorder
-  DeviceDataRetriever db.DeviceDataRetriever
+	DeviceDataRecorder  db.DeviceDataRecorder
+	DeviceDataRetriever db.DeviceDataRetriever
 
-  EmailSender utils.EmailSender
-  HtmlParser  utils.HtmlParser
-  UserGetter utils.UserGetter
+	EmailSender utils.EmailSender
+	HtmlParser  utils.HtmlParser
+	UserGetter  utils.UserGetter
 }
 
 func NewDeps() *Deps {
@@ -37,26 +37,26 @@ func NewDeps() *Deps {
 	sessionRepo := rf.NewSessionRepo()
 	userRepo := rf.NewUserRepo()
 
-  influxRepo := db.NewInfluxRepo()
+	influxRepo := db.NewInfluxRepo()
 
-  emailUtil := &utils.EmailUtil{}
-  htmlUtil := &utils.HtmlUtil{}
-  ctxUtil := &utils.CtxUtil{}
+	emailUtil := &utils.EmailUtil{}
+	htmlUtil := &utils.HtmlUtil{}
+	ctxUtil := &utils.CtxUtil{}
 
 	authSvc := services.NewAuthSvc(userRepo, sessionRepo, pwResetRepo, htmlUtil, emailUtil)
 	deviceSvc := services.NewDeviceSvc(deviceRepo, provStgRepo, ctxUtil)
 
 	return &Deps{
-		AuthSvc:     *authSvc,
-		DeviceSvc:   *deviceSvc,
-		DeviceRepo:  deviceRepo,
-		ProvStgRepo: provStgRepo,
-		PwResetRepo: pwResetRepo,
-		SessionRepo: sessionRepo,
-		UserRepo:    userRepo,
-    EmailSender: emailUtil,
-    HtmlParser: htmlUtil,
-    DeviceDataRecorder: influxRepo,
-    DeviceDataRetriever: influxRepo,
+		AuthSvc:             *authSvc,
+		DeviceSvc:           *deviceSvc,
+		DeviceRepo:          deviceRepo,
+		ProvStgRepo:         provStgRepo,
+		PwResetRepo:         pwResetRepo,
+		SessionRepo:         sessionRepo,
+		UserRepo:            userRepo,
+		EmailSender:         emailUtil,
+		HtmlParser:          htmlUtil,
+		DeviceDataRecorder:  influxRepo,
+		DeviceDataRetriever: influxRepo,
 	}
 }
