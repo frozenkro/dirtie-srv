@@ -1,9 +1,10 @@
 package core
 
 import (
+	"github.com/frozenkro/dirtie-srv/internal/core/utils"
+	"github.com/frozenkro/dirtie-srv/internal/db"
 	"github.com/frozenkro/dirtie-srv/internal/db/repos"
 	"github.com/frozenkro/dirtie-srv/internal/services"
-  "github.com/frozenkro/dirtie-srv/internal/core/utils"
 )
 
 type Deps struct {
@@ -15,6 +16,9 @@ type Deps struct {
 	PwResetRepo repos.PwResetRepo
 	SessionRepo repos.SessionRepo
 	UserRepo    repos.UserRepo
+
+  DeviceDataRecorder db.DeviceDataRecorder
+  DeviceDataRetriever db.DeviceDataRetriever
 
   EmailSender utils.EmailSender
   HtmlParser  utils.HtmlParser
@@ -33,6 +37,8 @@ func NewDeps() *Deps {
 	sessionRepo := rf.NewSessionRepo()
 	userRepo := rf.NewUserRepo()
 
+  influxRepo := db.NewInfluxRepo()
+
   emailUtil := &utils.EmailUtil{}
   htmlUtil := &utils.HtmlUtil{}
   ctxUtil := &utils.CtxUtil{}
@@ -50,5 +56,7 @@ func NewDeps() *Deps {
 		UserRepo:    userRepo,
     EmailSender: emailUtil,
     HtmlParser: htmlUtil,
+    DeviceDataRecorder: influxRepo,
+    DeviceDataRetriever: influxRepo,
 	}
 }

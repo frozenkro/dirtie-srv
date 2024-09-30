@@ -41,12 +41,12 @@ func initIxClient() influxdb2.Client {
 	return influxdb2.NewClient("http:"+uri, os.Getenv("INFLUX_TOKEN"))
 }
 
-func (r *InfluxRepo) Record(ctx context.Context, deviceId string, measurementKey string, value int64) error {
+func (r InfluxRepo) Record(ctx context.Context, deviceId int, measurementKey string, value int64) error {
 	c := *r.client
 	writeAPI := c.WriteAPIBlocking(os.Getenv("INFLUX_ORG"), os.Getenv("INFLUX_DEFAULT_BUCKET"))
 
 	p := influxdb2.NewPointWithMeasurement(measurementKey).
-		AddTag("device", deviceId).
+		AddTag("device", string(deviceId)).
 		AddField(measurementKey, value).
 		SetTime(time.Now())
 	err := writeAPI.WritePoint(ctx, p)
@@ -54,7 +54,7 @@ func (r *InfluxRepo) Record(ctx context.Context, deviceId string, measurementKey
 	return err
 }
 
-func (r *InfluxRepo) GetLatestValue(
+func (r InfluxRepo) GetLatestValue(
   ctx context.Context, 
   deviceId int, 
   measurementKey string) (DeviceDataPoint, error) {
@@ -86,7 +86,7 @@ func (r *InfluxRepo) GetLatestValue(
   }, nil
 }
 
-func (r *InfluxRepo) GetValuesRange(
+func (r InfluxRepo) GetValuesRange(
   ctx context.Context,
   deviceId int, 
   measurementKey string, 
