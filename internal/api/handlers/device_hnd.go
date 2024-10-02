@@ -6,10 +6,11 @@ import (
 
 	"github.com/frozenkro/dirtie-srv/internal/api/middleware"
 	"github.com/frozenkro/dirtie-srv/internal/core"
+	"github.com/frozenkro/dirtie-srv/internal/di"
 	"github.com/frozenkro/dirtie-srv/internal/services"
 )
 
-func SetupDeviceHandlers(deps *core.Deps) {
+func SetupDeviceHandlers(deps *di.Deps) {
 	http.Handle("GET /devices", middleware.Adapt(
 		getUserDevicesHandler(deps.DeviceSvc),
 		middleware.LogTransaction(),

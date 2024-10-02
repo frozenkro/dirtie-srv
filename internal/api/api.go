@@ -6,13 +6,13 @@ import (
 
 	"github.com/frozenkro/dirtie-srv/internal/api/handlers"
 	"github.com/frozenkro/dirtie-srv/internal/api/middleware"
-	"github.com/frozenkro/dirtie-srv/internal/core"
+	"github.com/frozenkro/dirtie-srv/internal/di"
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
 )
 
 const PORT = 8080
 
-func Init(deps *core.Deps) {
+func Init(deps *di.Deps) {
 	rootHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "request sent to root /\n")
 	})

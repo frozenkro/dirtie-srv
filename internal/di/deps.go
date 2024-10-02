@@ -1,4 +1,4 @@
-package core
+package di
 
 import (
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
@@ -9,6 +9,7 @@ import (
 
 type Deps struct {
 	AuthSvc   services.AuthSvc
+  CapSvc    services.CapSvc
 	DeviceSvc services.DeviceSvc
 
 	DeviceRepo  repos.DeviceRepo
@@ -45,9 +46,11 @@ func NewDeps() *Deps {
 
 	authSvc := services.NewAuthSvc(userRepo, sessionRepo, pwResetRepo, htmlUtil, emailUtil)
 	deviceSvc := services.NewDeviceSvc(deviceRepo, provStgRepo, ctxUtil)
+  capSvc := services.NewCapSvc(influxRepo, influxRepo, deviceSvc)
 
 	return &Deps{
 		AuthSvc:             *authSvc,
+    CapSvc:              capSvc,
 		DeviceSvc:           *deviceSvc,
 		DeviceRepo:          deviceRepo,
 		ProvStgRepo:         provStgRepo,

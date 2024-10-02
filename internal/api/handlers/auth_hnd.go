@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/frozenkro/dirtie-srv/internal/api/middleware"
+	"github.com/frozenkro/dirtie-srv/internal/di"
 	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
 	"github.com/frozenkro/dirtie-srv/internal/db/repos"
@@ -32,7 +33,7 @@ type ChangePwData struct {
 	ErrorMessage string
 }
 
-func SetupAuthHandlers(deps *core.Deps) {
+func SetupAuthHandlers(deps *di.Deps) {
 	http.Handle("POST /users", middleware.Adapt(
 		createUserHandler(deps.AuthSvc),
 		middleware.LogTransaction(),
