@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	fmt.Print("Running dirtie-srv mono driver")
+	fmt.Print("Running dirtie-srv mono driver\n")
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
@@ -22,7 +22,10 @@ func main() {
 	if os.Getenv("APP_HOST") != "container" {
 		err := godotenv.Load("../../.env")
 		if err != nil {
-			panic("Unable to locate .env")
+      err = godotenv.Load("./.env")
+      if err != nil {
+        panic("Unable to locate .env\n")
+      }
 		}
 	}
 
@@ -32,5 +35,5 @@ func main() {
 
 	<-sigChan
 
-	fmt.Println("SIGTERM rcvd, shutting down")
+	fmt.Println("SIGTERM rcvd, shutting down\n")
 }

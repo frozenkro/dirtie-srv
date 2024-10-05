@@ -5,7 +5,7 @@ services:
       - "1883:1883"
       - "9001:9001"
     volumes: 
-      - ./mosquitto:/mosquitto/config/
+      - ./mosquitto:/mosquitto/
     
   influxdb:
     image: influxdb:2
@@ -36,8 +36,8 @@ services:
       - INFLUX_DEFAULT_BUCKET=${INFLUX_DEFAULT_BUCKET}
       - INFLUX_URI=influxdb:8086
       - MOSQUITTO_URI=mosquitto:1883
-      - APP_HOST="container"
-      - ASSETS_DIR="./assets/"
+      - APP_HOST=container
+      - ASSETS_DIR=./assets/
     depends_on:
       - mosquitto
       - influxdb
