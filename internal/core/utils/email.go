@@ -2,10 +2,10 @@ package utils
 
 import (
 	"context"
-	"os"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
+  "github.com/frozenkro/dirtie-srv/internal/core"
 )
 
 type EmailSender interface {
@@ -19,7 +19,7 @@ func (u *EmailUtil) SendEmail(ctx context.Context, emailAddress string, subject 
 	to := mail.NewEmail("", emailAddress)
 
 	message := mail.NewSingleEmail(from, subject, to, body, body)
-	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+	client := sendgrid.NewSendClient(core.SENDGRID_API_KEY)
 	_, err := client.SendWithContext(ctx, message)
 	return err
 }

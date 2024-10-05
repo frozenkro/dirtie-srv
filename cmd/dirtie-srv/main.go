@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/frozenkro/dirtie-srv/internal/api"
+	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/frozenkro/dirtie-srv/internal/di"
 	"github.com/frozenkro/dirtie-srv/internal/hub"
 
@@ -29,7 +30,9 @@ func main() {
 		}
 	}
 
+  core.SetupEnv()
 	deps := di.NewDeps()
+
 	go api.Init(deps)
 	go hub.Init()
 

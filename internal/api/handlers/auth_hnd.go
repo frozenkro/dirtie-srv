@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/frozenkro/dirtie-srv/internal/api/middleware"
 	"github.com/frozenkro/dirtie-srv/internal/di"
@@ -199,8 +198,7 @@ func changePwHandler(authSvc services.AuthSvc, htmlUtil utils.HtmlParser, userRe
 		}
 
 		// serve page with data
-		assetsDir := os.Getenv("ASSETS_DIR")
-		tmpl, err := htmlUtil.ReadFile(ctx, fmt.Sprintf("%vchangePasswordPage.html", assetsDir))
+		tmpl, err := htmlUtil.ReadFile(ctx, fmt.Sprintf("%vchangePasswordPage.html", core.ASSETS_DIR))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

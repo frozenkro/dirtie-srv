@@ -3,10 +3,10 @@ package db
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/influxdata/influxdb-client-go/v2"
+  "github.com/frozenkro/dirtie-srv/internal/core"
 )
 
 type DeviceDataPoint struct {
@@ -34,16 +34,13 @@ func NewInfluxRepo() InfluxRepo {
 }
 
 func initIxClient() influxdb2.Client {
-	uri, ok := os.LookupEnv("INFLUX_URI")
-	if !ok {
-		uri = "localhost:8086"
-	}
-	return influxdb2.NewClient("http:"+uri, os.Getenv("INFLUX_TOKEN"))
+  uri := core.INFLUX_URI
+	return influxdb2.NewClient("http:"+uri, core.INFLUX_TOKEN)
 }
 
 func (r InfluxRepo) Record(ctx context.Context, deviceId int, measurementKey string, value int64) error {
 	c := *r.client
-	writeAPI := c.WriteAPIBlocking(os.Getenv("INFLUX_ORG"), os.Getenv("INFLUX_DEFAULT_BUCKET"))
+	writeAPI := c.WriteAPIBlocking(core.INFLUX_ORG, core.INFLUX_DEFAULT_BUCKET)
 
 	p := influxdb2.NewPointWithMeasurement(measurementKey).
 		AddTag("device", string(deviceId)).
@@ -59,13 +56,13 @@ func (r InfluxRepo) GetLatestValue(
 	deviceId int,
 	measurementKey string) (DeviceDataPoint, error) {
 	c := *r.client
-	queryAPI := c.QueryAPI(os.Getenv("INFLUX_ORG"))
+	queryAPI := c.QueryAPI(core.INFLUX_ORG)
 
 	query := fmt.Sprintf(`
     from(bucket:"%v")
     |> filter(fn: (r) => r._measurement == "%v" and r._field == "%v")
     |> sort(columns: ["_time"], desc: true)
-    |> limit(n:1)`, os.Getenv("INFLUX_DEFAULT_BUCKET"), measurementKey, measurementKey)
+    |> limit(n:1)`, core.INFLUX_DEFAULT_BUCKET, measurementKey, measurementKey)
 
 	qRes, err := queryAPI.Query(ctx, query)
 	if err != nil {
@@ -93,7 +90,7 @@ func (r InfluxRepo) GetValuesRange(
 	start time.Time,
 	end time.Time) ([]DeviceDataPoint, error) {
 	c := *r.client
-	queryAPI := c.QueryAPI(os.Getenv("INFLUX_ORG"))
+	queryAPI := c.QueryAPI(core.INFLUX_ORG)
 
 	query := fmt.Sprintf(`
     from(bucket:"%v")

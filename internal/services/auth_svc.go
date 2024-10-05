@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"os"
 	"time"
 
+	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
 	"github.com/frozenkro/dirtie-srv/internal/db/repos"
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
@@ -166,8 +166,7 @@ func (s *AuthSvc) ForgotPw(ctx context.Context, email string) error {
 	}
 
 	// load and fill html template
-	assetsDir := os.Getenv("ASSETS_DIR")
-	template, err := s.htmlParser.ReadFile(ctx, fmt.Sprintf("%vresetPwEmail.html", assetsDir))
+	template, err := s.htmlParser.ReadFile(ctx, fmt.Sprintf("%vresetPwEmail.html", core.ASSETS_DIR))
 	if err != nil {
 		return fmt.Errorf("Error ForgotPw -> ReadFile: \n%w\n", err)
 	}
