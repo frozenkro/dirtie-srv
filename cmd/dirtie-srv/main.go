@@ -10,8 +10,6 @@ import (
 	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/frozenkro/dirtie-srv/internal/di"
 	"github.com/frozenkro/dirtie-srv/internal/hub"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -19,16 +17,6 @@ func main() {
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-
-	if os.Getenv("APP_HOST") != "container" {
-		err := godotenv.Load("../../.env")
-		if err != nil {
-      err = godotenv.Load("./.env")
-      if err != nil {
-        panic("Unable to locate .env\n")
-      }
-		}
-	}
 
   core.SetupEnv()
 	deps := di.NewDeps()

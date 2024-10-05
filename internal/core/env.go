@@ -1,6 +1,10 @@
 package core
 
-import ("os")
+import (
+  "os"
+
+  "github.com/joho/godotenv"
+)
 
 var (
   INFLUX_ORG string
@@ -29,6 +33,16 @@ func SetupTestEnv() {
 }
 
 func SetupEnv() {
+	if os.Getenv("APP_HOST") != "container" {
+		err := godotenv.Load("../../.env")
+		if err != nil {
+      err = godotenv.Load("./.env")
+      if err != nil {
+        panic("Unable to locate .env\n")
+      }
+		}
+	}
+
   INFLUX_ORG = os.Getenv("INFLUX_ORG")
   INFLUX_DEFAULT_BUCKET = os.Getenv("INFLUX_DEFAULT_BUCKET")
   INFLUX_TOKEN = os.Getenv("INFLUX_TOKEN")
