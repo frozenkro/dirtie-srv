@@ -28,12 +28,12 @@ func TestCreateUser_CreatesUser(t *testing.T) {
   }
   userBytes, err := json.Marshal(userArgs)
   if err != nil {
-    t.Fatalf("Error encoding request body: %w", err)
+    t.Fatalf("Error encoding request body: %v", err)
   }
 
   resp, err := http.Post(server.URL+"/users", "application/json", bytes.NewBuffer(userBytes))
   if err != nil {
-    t.Errorf("API returned error: %w", err)
+    t.Errorf("API returned error: %v", err)
   }
   defer resp.Body.Close()
 
@@ -53,7 +53,7 @@ func TestCreateUser_CreatesUser(t *testing.T) {
   user := sqlc.User{}
   err = row.Scan(user.Email, user.PwHash, user.Name, user.CreatedAt, user.LastLogin)
   if err != nil {
-    t.Fatalf("Error converting inserted row to user obj: %w", err)
+    t.Fatalf("Error converting inserted row to user obj: %v", err)
   }
 
   if user.Name != userArgs.Name {

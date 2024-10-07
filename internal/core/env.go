@@ -2,6 +2,7 @@ package core
 
 import (
   "os"
+  "regexp"
 
   "github.com/joho/godotenv"
 )
@@ -27,6 +28,12 @@ var (
   SENDGRID_API_KEY string
 )
 
+func ProjectRootDir() string {
+    re := regexp.MustCompile(`^(.*` + PROJECT_DIR_NAME + `)`)
+    cwd, _ := os.Getwd()
+    return string(re.Find([]byte(cwd)))
+}
+
 func SetupTestEnv() {
   SetupEnv()
   POSTGRES_SERVER = os.Getenv("POSTGRES_TEST_SERVER")
@@ -34,12 +41,9 @@ func SetupTestEnv() {
 
 func SetupEnv() {
 	if os.Getenv("APP_HOST") != "container" {
-		err := godotenv.Load("../../.env")
-		if err != nil {
-      err = godotenv.Load("./.env")
-      if err != nil {
-        panic("Unable to locate .env\n")
-      }
+		err := godotenv.Load(ProjectRootDir() + `/.env`)
+    if err != nil {
+      panic("Unable to locate .env\n")
 		}
 	}
 
