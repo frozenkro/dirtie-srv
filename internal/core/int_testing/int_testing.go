@@ -1,4 +1,4 @@
-package api
+package int_testing
 
 import (
 	"database/sql"
@@ -30,7 +30,7 @@ func SetupTests() {
   setupComplete = true
 }
 
-func setupDb() {
+func ConnectDb() *sql.DB {
 	connstr := fmt.Sprintf("postgres://%v:%v@%v/%v",
 		core.POSTGRES_USER,
 		core.POSTGRES_PASSWORD,
@@ -40,6 +40,11 @@ func setupDb() {
   if err != nil {
     panic(fmt.Errorf("Error connecting to test db: %w", err))
   }
+
+  return db
+}
+func setupDb() {
+  db := ConnectDb()
   defer db.Close()
 
   schema, err := os.ReadFile("../db/sqlc/schema.sql")
