@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"bytes"
-  "context"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -48,14 +48,18 @@ func TestCreateUser_CreatesUser(t *testing.T) {
     userArgs.Email,
   )
 
-  if row.Next() {
-    t.Errorf("Multiple records found")
+  if !row.Next() {
+    t.Errorf("No rows found")
   }
 
   user := sqlc.User{}
-  err = row.Scan(user.UserID, user.Email, user.PwHash, user.Name, user.CreatedAt, user.LastLogin)
+  err = row.Scan(&user.UserID, &user.Email, &user.Name, &user.PwHash, &user.CreatedAt, &user.LastLogin)
   if err != nil {
     t.Fatalf("Error converting inserted row to user obj: %v", err)
+  }
+
+  if row.Next() {
+    t.Errorf("Multiple rows found")
   }
 
   if user.Name != userArgs.Name {
