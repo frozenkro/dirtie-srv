@@ -26,5 +26,5 @@ func main() {
 
 	<-sigChan
 
-	fmt.Println("SIGTERM rcvd, shutting down\n")
+	fmt.Println("SIGTERM rcvd, shutting down")
 }

@@ -146,7 +146,7 @@ func (s *AuthSvc) ForgotPw(ctx context.Context, email string) error {
 		return err
 	}
 	if user.UserID <= 0 {
-		return fmt.Errorf("No user found for email '%v'\n", email, ErrNoUser)
+    return fmt.Errorf("No user found for email '%v': %w\n", email, ErrNoUser)
 	}
 	userId := user.UserID
 

@@ -3,10 +3,11 @@ package db
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
+	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/influxdata/influxdb-client-go/v2"
-  "github.com/frozenkro/dirtie-srv/internal/core"
 )
 
 type DeviceDataPoint struct {
@@ -43,7 +44,7 @@ func (r InfluxRepo) Record(ctx context.Context, deviceId int, measurementKey str
 	writeAPI := c.WriteAPIBlocking(core.INFLUX_ORG, core.INFLUX_DEFAULT_BUCKET)
 
 	p := influxdb2.NewPointWithMeasurement(measurementKey).
-		AddTag("device", string(deviceId)).
+		AddTag("device", strconv.Itoa(deviceId)).
 		AddField(measurementKey, value).
 		SetTime(time.Now())
 	err := writeAPI.WritePoint(ctx, p)
@@ -96,7 +97,7 @@ func (r InfluxRepo) GetValuesRange(
     from(bucket:"%v")
     |> filter(fn: (r) => r._measurement == "%v" and r._field == "%v")
     |> range(start: "%v", stop: "%v")
-  `, measurementKey, measurementKey, start.Format(time.RFC3339), end.Format(time.RFC3339))
+  `, core.INFLUX_DEFAULT_BUCKET, measurementKey, measurementKey, start.Format(time.RFC3339), end.Format(time.RFC3339))
 
 	qRes, err := queryAPI.Query(ctx, query)
 	if err != nil {
