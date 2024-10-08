@@ -2,21 +2,21 @@ package handlers
 
 import (
 	"bytes"
+  "context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/frozenkro/dirtie-srv/internal/core"
-	"github.com/frozenkro/dirtie-srv/internal/core/int_testing"
+	"github.com/frozenkro/dirtie-srv/internal/core/int_tst"
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
 	"github.com/frozenkro/dirtie-srv/internal/di"
 )
 
 func TestCreateUser_CreatesUser(t *testing.T) {
   core.SetupTestEnv()
-  int_testing.SetupTests()
+  int_tst.SetupTests()
   deps := di.NewDeps()
   server := httptest.NewServer(createUserHandler(deps.AuthSvc))
   defer server.Close()
@@ -41,9 +41,11 @@ func TestCreateUser_CreatesUser(t *testing.T) {
     t.Errorf("API status code unexpected: %v", resp.StatusCode)
   }
   
-  db := int_testing.ConnectDb()
+  db := int_tst.ConnectDb()
   row, err := db.Query(
-    fmt.Sprintf("SELECT * FROM users WHERE email = %v", userArgs.Email),
+    context.Background(),
+    "SELECT * FROM users WHERE email = $1", 
+    userArgs.Email,
   )
 
   if row.Next() {
@@ -51,7 +53,7 @@ func TestCreateUser_CreatesUser(t *testing.T) {
   }
 
   user := sqlc.User{}
-  err = row.Scan(user.Email, user.PwHash, user.Name, user.CreatedAt, user.LastLogin)
+  err = row.Scan(user.UserID, user.Email, user.PwHash, user.Name, user.CreatedAt, user.LastLogin)
   if err != nil {
     t.Fatalf("Error converting inserted row to user obj: %v", err)
   }

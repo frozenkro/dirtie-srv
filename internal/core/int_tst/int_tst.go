@@ -1,12 +1,14 @@
-package int_testing
+package int_tst
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"os"
+  "time"
 
 	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -30,13 +32,13 @@ func SetupTests() {
   setupComplete = true
 }
 
-func ConnectDb() *sql.DB {
+func ConnectDb() *pgx.Conn {
 	connstr := fmt.Sprintf("postgres://%v:%v@%v/%v",
 		core.POSTGRES_USER,
 		core.POSTGRES_PASSWORD,
 		core.POSTGRES_SERVER,
 		core.POSTGRES_DB)
-  db, err := sql.Open("postgres", connstr)
+  db, err := pgx.Connect(context.Background(), connstr)
   if err != nil {
     panic(fmt.Errorf("Error connecting to test db: %w", err))
   }
@@ -45,43 +47,48 @@ func ConnectDb() *sql.DB {
 }
 func setupDb() {
   db := ConnectDb()
-  defer db.Close()
+  defer db.Close(context.Background())
 
-  schema, err := os.ReadFile("../db/sqlc/schema.sql")
+  schema, err := os.ReadFile(core.ProjectRootDir() + "/internal/db/sqlc/schema.sql")
   if err != nil {
     panic(fmt.Errorf("Error reading schema.sql: %w", err))
   }
 
-  if _, err := db.Exec(string(schema)); err != nil {
+  if _, err := db.Exec(context.Background(), string(schema)); err != nil {
     panic(fmt.Errorf("Error executing schema.sql: %w", err))
   }
 
   setupData(db)
 }
 
-func setupData(db *sql.DB) {
+func setupData(db *pgx.Conn) {
   TestUser.Name = "Test User"
   TestUser.Email = "test@email.test"
   TestUser.PwHash = []byte("pwhash")
   TestUser.UserID = 1
-  userSql := fmt.Sprintf("INSERT INTO users (email, name, pw_hash) VALUES (%v, %v, %v)", TestUser.Name, TestUser.Email, TestUser.PwHash)
-  if _, err := db.Exec(userSql); err != nil {
+  userSql := "INSERT INTO users (email, name, pw_hash) VALUES ($1, $2, $3)"
+  if _, err := db.Exec(context.Background(), userSql, TestUser.Email, TestUser.Name, TestUser.PwHash); err != nil {
     panic(fmt.Errorf("Error creating test user record: %w", err))
   }
   
   TestSession.Token = "testtoken"
   TestSession.UserID = 1
+  duration, _ := time.ParseDuration("2h")
+  TestSession.ExpiresAt.Time = time.Now().Add(duration)
+  TestSession.ExpiresAt.Valid = true
   TestSession.SessionID = 1
-  sessionSql := fmt.Sprintf("INSERT INTO sessions (user_id, token) VALUES (%v, %v)", TestSession.UserID, TestSession.Token)
-  if _, err := db.Exec(sessionSql); err != nil {
+  sessionSql := "INSERT INTO sessions (user_id, token, expires_at) VALUES ($1, $2, $3)"
+  if _, err := db.Exec(context.Background(), sessionSql, TestSession.UserID, TestSession.Token, TestSession.ExpiresAt); err != nil {
     panic(fmt.Errorf("Error creating test session record: %w", err))
   }
   
   TestPwResetToken.Token = "testpwresettoken"
   TestPwResetToken.UserID = 1
+  TestPwResetToken.ExpiresAt.Time = time.Now().Add(duration)
+  TestPwResetToken.ExpiresAt.Valid = true
   TestPwResetToken.PwResetID = 1
-  pwRstSql := fmt.Sprintf("INSERT INTO pw_reset_tokens (user_id, token) VALUES (%v, %v)", TestPwResetToken.UserID, TestPwResetToken.Token)
-  if _, err := db.Exec(pwRstSql); err != nil {
+  pwRstSql := "INSERT INTO pw_reset_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)"
+  if _, err := db.Exec(context.Background(), pwRstSql, TestPwResetToken.UserID, TestPwResetToken.Token, TestPwResetToken.ExpiresAt); err != nil {
     panic(fmt.Errorf("Error creating test pw reset token record: %w", err))
   }
 
@@ -95,16 +102,16 @@ func setupData(db *sql.DB) {
     String: "testDeviceDisplay",
     Valid: true,
   }
-  deviceSql := fmt.Sprintf("INSERT INTO devices (user_id, mac_addr, display_name) VALUES (%v, %v, %v)", TestDevice.UserID, TestDevice.MacAddr, TestDevice.DisplayName)
-  if _, err := db.Exec(deviceSql); err != nil {
+  deviceSql := "INSERT INTO devices (user_id, mac_addr, display_name) VALUES ($1, $2, $3)"
+  if _, err := db.Exec(context.Background(), deviceSql, TestDevice.UserID, TestDevice.MacAddr, TestDevice.DisplayName); err != nil {
     panic(fmt.Errorf("Error creating test device record: %w", err))
   }
 
   TestProvStg.Contract.String = "testprvstgcontract"
   TestProvStg.Contract.Valid = true
   TestProvStg.DeviceID = 1
-  prvSql := fmt.Sprintf("INSERT INTO provision_staging (device_id, contract) VALUES (%v, %v)", TestProvStg.DeviceID, TestProvStg.Contract)
-  if _, err := db.Exec(prvSql); err != nil {
+  prvSql := "INSERT INTO provision_staging (device_id, contract) VALUES ($1, $2)"
+  if _, err := db.Exec(context.Background(), prvSql, TestProvStg.DeviceID, TestProvStg.Contract); err != nil {
     panic(fmt.Errorf("Error creating test provision staging record: %w", err))
   }
 }
