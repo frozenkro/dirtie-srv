@@ -33,7 +33,7 @@ func TestCreateUser_CreatesUser(t *testing.T) {
 
   resp, err := http.Post(server.URL+"/users", "application/json", bytes.NewBuffer(userBytes))
   if err != nil {
-    t.Errorf("API returned error: %v", err)
+    t.Errorf("API client returned error: %v", err)
   }
   defer resp.Body.Close()
 
@@ -64,5 +64,33 @@ func TestCreateUser_CreatesUser(t *testing.T) {
 
   if user.Name != userArgs.Name {
     t.Errorf("Inserted user Name mismatch")
+  }
+}
+
+func TestCreateUser_WhenUserEmailExists_ReturnsUserExistsError(t *testing.T) {
+  core.SetupTestEnv()
+  int_tst.SetupTests()
+  deps := di.NewDeps()
+  server := httptest.NewServer(createUserHandler(deps.AuthSvc))
+  defer server.Close()
+
+  userArgs := CreateUserArgs{
+    Email: int_tst.TestUser.Email,
+    Password: "createuserpassword",
+    Name: "Test User",
+  }
+  userBytes, err := json.Marshal(userArgs)
+  if err != nil {
+    t.Fatalf("Error encoding request body: %v", err)
+  }
+
+  resp, err := http.Post(server.URL+"/users", "application/json", bytes.NewBuffer(userBytes))
+  if err != nil {
+    t.Errorf("API client returned error: %v", err)
+  }
+  defer resp.Body.Close()
+
+  if resp.StatusCode != http.StatusInternalServerError {
+    t.Errorf("API status code unexpected: %v", resp.StatusCode)
   }
 }
