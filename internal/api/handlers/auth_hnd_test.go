@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"testing"
 
 	"github.com/frozenkro/dirtie-srv/internal/core"
@@ -16,9 +17,10 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
-  core.SetupTestEnv()
-  int_tst.SetupTests()
-  db := int_tst.ConnectDb()
+  ctx := context.Background()
+  db := int_tst.SetupTests()
+  defer db.Close(ctx)
+
   deps := di.NewDeps()
   server := httptest.NewServer(createUserHandler(deps.AuthSvc))
   defer server.Close()
@@ -83,5 +85,43 @@ func TestCreateUser(t *testing.T) {
     defer resp.Body.Close()
 
     assert.Equal(t, resp.StatusCode, http.StatusInternalServerError)
+  })
+}
+
+func TestLogin(t *testing.T) {
+  ctx := context.Background()
+  db := int_tst.SetupTests()
+  defer db.Close(ctx)
+
+  deps := di.NewDeps()
+  server := httptest.NewServer(createUserHandler(deps.AuthSvc))
+  defer server.Close()
+
+  t.Run("Success", func(t *testing.T) {
+    loginArgs := LoginArgs{
+      Email: int_tst.TestUser.Email,
+      Password: "testpw",
+    }
+
+    loginBytes, err := json.Marshal(loginArgs)
+    if err != nil {
+      t.Errorf("Error encoding request body: %v", err)
+    }
+
+    resp, err := http.Post(server.URL+"/login", "application/json", bytes.NewBuffer(loginBytes))
+    if err != nil {
+      t.Errorf("API client returned error: %v", err)
+    }
+    
+    assert.NotEqual(t, http.StatusUnauthorized, resp.StatusCode, "Invalid credentials error")
+    assert.Equal(t, http.StatusOK, resp.StatusCode)
+    cookies := resp.Cookies()
+    authIdx := slices.IndexFunc(cookies, func(c *http.Cookie) bool { return c.Name == core.AUTH_COOKIE_NAME })
+    assert.NotEqual(t, -1, authIdx) 
+
+    if authIdx >= 0 {
+      assert.NotNil(t, cookies[authIdx].Value)
+      assert.Nil(t, cookies[authIdx].Valid)
+    }
   })
 }
