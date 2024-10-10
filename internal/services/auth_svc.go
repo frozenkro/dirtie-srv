@@ -27,6 +27,7 @@ var (
 	ErrExpiredToken = fmt.Errorf("Auth token expired")
 	ErrUserExists   = fmt.Errorf("User Email already exists")
 	ErrNoUser       = fmt.Errorf("User not found")
+  ErrInvalidPassword = fmt.Errorf("Invalid Password")
 )
 
 func NewAuthSvc(userRepo repos.UserRepo,

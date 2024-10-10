@@ -94,12 +94,16 @@ func loginHandler(authSvc services.AuthSvc) http.Handler {
 
 		token, err := authSvc.Login(r.Context(), args.Email, args.Password)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+      if errors.Is(err, services.ErrInvalidPassword) {
+        http.Error(w, err.Error(), http.StatusUnauthorized)
+      } else {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+      }
 		}
 
 		cookie := http.Cookie{
-			Name:  "dirtie.auth",
+			Name:  core.AUTH_COOKIE_NAME,
 			Value: token,
 		}
 		http.SetCookie(w, &cookie)

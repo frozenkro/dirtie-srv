@@ -13,7 +13,7 @@ import (
 )
 
 var ( 
-  setupComplete bool = false
+  initSetup bool = false
   TestUser sqlc.User
   TestSession sqlc.Session
   TestPwResetToken sqlc.PwResetToken
@@ -21,18 +21,20 @@ var (
   TestProvStg sqlc.ProvisionStaging
 )
 
-func SetupTests() {
-  if setupComplete {
-    return
+func SetupTests() *pgx.Conn {
+  var db *pgx.Conn
+  if !initSetup {
+    core.SetupTestEnv()
+    db = connectDb()
+    setupDb(db)
+    initSetup = true
+  } else {
+    db = connectDb()
   }
-
-  core.SetupTestEnv()
-  setupDb()
-
-  setupComplete = true
+  return db
 }
 
-func ConnectDb() *pgx.Conn {
+func connectDb() *pgx.Conn {
 	connstr := fmt.Sprintf("postgres://%v:%v@%v/%v",
 		core.POSTGRES_USER,
 		core.POSTGRES_PASSWORD,
@@ -45,10 +47,7 @@ func ConnectDb() *pgx.Conn {
 
   return db
 }
-func setupDb() {
-  db := ConnectDb()
-  defer db.Close(context.Background())
-
+func setupDb(db *pgx.Conn) {
   schema, err := os.ReadFile(core.ProjectRootDir() + "/internal/db/sqlc/schema.sql")
   if err != nil {
     panic(fmt.Errorf("Error reading schema.sql: %w", err))
@@ -64,7 +63,8 @@ func setupDb() {
 func setupData(db *pgx.Conn) {
   TestUser.Name = "Test User"
   TestUser.Email = "test@email.test"
-  TestUser.PwHash = []byte("pwhash")
+  // "testpw"
+  TestUser.PwHash = []byte("$2a$10$sYZTH/eivjOREKa/ehkWQ.7SjbsLDJEfoTzpsjKIwVafkijloIndi")
   TestUser.UserID = 1
   userSql := "INSERT INTO users (email, name, pw_hash) VALUES ($1, $2, $3)"
   if _, err := db.Exec(context.Background(), userSql, TestUser.Email, TestUser.Name, TestUser.PwHash); err != nil {
