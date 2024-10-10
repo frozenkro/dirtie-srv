@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/frozenkro/dirtie-srv/internal/core/int_tst"
@@ -56,7 +57,7 @@ func TestCreateUser(t *testing.T) {
     if !row.Next() {
       t.Errorf("No rows found")
     }
-
+    
     user := sqlc.User{}
     err = row.Scan(&user.UserID, &user.Email, &user.Name, &user.PwHash, &user.CreatedAt, &user.LastLogin)
     if err != nil {
@@ -94,7 +95,7 @@ func TestLogin(t *testing.T) {
   defer db.Close(ctx)
 
   deps := di.NewDeps()
-  server := httptest.NewServer(createUserHandler(deps.AuthSvc))
+  server := httptest.NewServer(loginHandler(deps.AuthSvc))
   defer server.Close()
 
   t.Run("Success", func(t *testing.T) {
@@ -121,7 +122,40 @@ func TestLogin(t *testing.T) {
 
     if authIdx >= 0 {
       assert.NotNil(t, cookies[authIdx].Value)
-      assert.Nil(t, cookies[authIdx].Valid)
+      assert.Nil(t, cookies[authIdx].Valid())
     }
+
+    // updates LastLogin
+    user := sqlc.User{Email: loginArgs.Email}
+    userR, err := db.Query(ctx, `SELECT user_id, last_login
+      FROM users
+      WHERE email = $1`, 
+      loginArgs.Email)
+    if err != nil {
+      t.Fatalf("Error querying db for test results: %v", err)
+    }
+    assert.True(t, userR.Next())
+    userR.Scan(&user.UserID, &user.LastLogin)
+    recentTime := time.Now().Add(-2 * time.Minute)
+    assert.True(t, recentTime.Before(user.LastLogin.Time))
+    assert.False(t, userR.Next())
+
+    // creates session
+    session := sqlc.Session{ UserID: user.UserID }
+    sessionR, err := db.Query(ctx, `
+      SELECT token, expires_at, created_at 
+      FROM sessions  
+      WHERE user_id = $1`,
+      user.UserID)
+    if err != nil {
+      t.Fatalf("Error querying db for test results: %v", err)
+    }
+    assert.True(t, sessionR.Next())
+    sessionR.Scan(&session.Token, &session.ExpiresAt, &session.CreatedAt)
+    assert.NotEmpty(t, session.Token)
+    assert.True(t, session.CreatedAt.Valid)
+    assert.True(t, session.ExpiresAt.Valid)
+    assert.Greater(t, session.ExpiresAt.Time, session.CreatedAt.Time)
+    assert.True(t, recentTime.Before(session.CreatedAt.Time))
   })
 }

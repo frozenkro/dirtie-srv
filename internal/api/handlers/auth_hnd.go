@@ -93,7 +93,6 @@ func loginHandler(authSvc services.AuthSvc) http.Handler {
 		}
 
 		token, err := authSvc.Login(r.Context(), args.Email, args.Password)
-    utils.LogErr(err.Error())
 		if err != nil {
       if errors.Is(err, services.ErrInvalidPassword) {
         http.Error(w, err.Error(), http.StatusUnauthorized)

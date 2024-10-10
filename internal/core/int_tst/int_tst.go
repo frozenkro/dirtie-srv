@@ -64,7 +64,7 @@ func setupData(db *pgx.Conn) {
   TestUser.Name = "Test User"
   TestUser.Email = "test@email.test"
   // "testpw"
-  TestUser.PwHash = []byte("JDJhJDEwJHZCR3JvbHFGOHIvRzVvYkVJbXZuTHVHRHFQT0FaUzN1WWk4c282WHlSR0JRNjRYYkRHMlFX")
+  TestUser.PwHash = []byte("$2a$10$sYZTH/eivjOREKa/ehkWQ.7SjbsLDJEfoTzpsjKIwVafkijloIndi")
   TestUser.UserID = 1
   userSql := "INSERT INTO users (email, name, pw_hash) VALUES ($1, $2, $3)"
   if _, err := db.Exec(context.Background(), userSql, TestUser.Email, TestUser.Name, TestUser.PwHash); err != nil {
