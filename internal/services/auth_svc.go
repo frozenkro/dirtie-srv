@@ -80,7 +80,7 @@ func (s *AuthSvc) Login(ctx context.Context, email string, password string) (str
 
 	err = bcrypt.CompareHashAndPassword(user.PwHash, []byte(password))
 	if err != nil {
-		return "", fmt.Errorf("Error Login -> CompareHashAndPassword: \n%w\n", err)
+		return "", fmt.Errorf("Error Login -> CompareHashAndPassword: \n%w\n", ErrInvalidPassword)
 	}
 
 	err = s.userRepo.UpdateLastLoginTime(ctx, user.UserID)
