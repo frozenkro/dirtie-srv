@@ -89,7 +89,7 @@ func TestLogin(t *testing.T) {
 		mockUserRepo.On("GetUserFromEmail", ctx, email).Return(sqlc.User{UserID: 1, Email: email, PwHash: hashedPassword}, nil)
 		mockUserRepo.On("UpdateLastLoginTime", ctx, int32(1)).Return(nil)
 		mockSessionRepo.On("CreateSession", ctx, int32(1), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).Return(nil)
-    mockSessionRepo.On("DeleteUserSessions", ctx, int32(1)).Return(nil)
+		mockSessionRepo.On("DeleteUserSessions", ctx, int32(1)).Return(nil)
 
 		token, err := authSvc.Login(ctx, email, password)
 

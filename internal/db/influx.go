@@ -35,7 +35,7 @@ func NewInfluxRepo() InfluxRepo {
 }
 
 func initIxClient() influxdb2.Client {
-  uri := core.INFLUX_URI
+	uri := core.INFLUX_URI
 	return influxdb2.NewClient("http:"+uri, core.INFLUX_TOKEN)
 }
 

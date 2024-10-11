@@ -11,7 +11,7 @@ import (
 )
 
 type DeviceRetriever interface {
-  GetDeviceByMacAddr(ctx context.Context, macAddr string) (sqlc.Device, error)
+	GetDeviceByMacAddr(ctx context.Context, macAddr string) (sqlc.Device, error)
 }
 
 type DeviceSvc struct {

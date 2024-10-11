@@ -9,7 +9,7 @@ import (
 
 type Deps struct {
 	AuthSvc   services.AuthSvc
-  CapSvc    services.CapSvc
+	BrdCrmSvc services.BrdCrmSvc
 	DeviceSvc services.DeviceSvc
 
 	DeviceRepo  repos.DeviceRepo
@@ -46,11 +46,11 @@ func NewDeps() *Deps {
 
 	authSvc := services.NewAuthSvc(userRepo, sessionRepo, pwResetRepo, htmlUtil, emailUtil)
 	deviceSvc := services.NewDeviceSvc(deviceRepo, provStgRepo, ctxUtil)
-  capSvc := services.NewCapSvc(influxRepo, influxRepo, deviceSvc)
+	brdCrmSvc := services.NewBrdCrmSvc(influxRepo, influxRepo, deviceSvc)
 
 	return &Deps{
 		AuthSvc:             *authSvc,
-    CapSvc:              capSvc,
+		BrdCrmSvc:           brdCrmSvc,
 		DeviceSvc:           *deviceSvc,
 		DeviceRepo:          deviceRepo,
 		ProvStgRepo:         provStgRepo,

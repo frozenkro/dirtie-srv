@@ -18,7 +18,7 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-  core.SetupEnv()
+	core.SetupEnv()
 	deps := di.NewDeps()
 
 	go api.Init(deps)

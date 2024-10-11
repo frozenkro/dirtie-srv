@@ -6,8 +6,8 @@ import (
 
 	"github.com/frozenkro/dirtie-srv/internal/api/handlers"
 	"github.com/frozenkro/dirtie-srv/internal/api/middleware"
-	"github.com/frozenkro/dirtie-srv/internal/di"
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
+	"github.com/frozenkro/dirtie-srv/internal/di"
 )
 
 const PORT = 8080

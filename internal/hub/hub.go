@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/eclipse/paho.mqtt.golang"
+	"github.com/frozenkro/dirtie-srv/internal/core/topics"
 )
 
 var (
@@ -13,7 +14,17 @@ var (
 )
 
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	fmt.Printf("Received message: %s from topic %s\n", string(msg.Payload()), string(msg.Topic()))
+	topic := string(msg.Topic())
+	fmt.Printf("Received message: %s from topic %s\n", string(msg.Payload()), topic)
+
+	switch topic {
+	case topics.Breadcrumb:
+		// need deps injected
+	case topics.Provision:
+		// yep still need deps
+	default:
+		fmt.Printf("Topic %v not recognized", topic)
+	}
 }
 
 var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {

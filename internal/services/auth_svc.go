@@ -23,11 +23,11 @@ type AuthSvc struct {
 }
 
 var (
-	ErrInvalidToken = fmt.Errorf("Invalid auth token")
-	ErrExpiredToken = fmt.Errorf("Auth token expired")
-	ErrUserExists   = fmt.Errorf("User Email already exists")
-	ErrNoUser       = fmt.Errorf("User not found")
-  ErrInvalidPassword = fmt.Errorf("Invalid Password")
+	ErrInvalidToken    = fmt.Errorf("Invalid auth token")
+	ErrExpiredToken    = fmt.Errorf("Auth token expired")
+	ErrUserExists      = fmt.Errorf("User Email already exists")
+	ErrNoUser          = fmt.Errorf("User not found")
+	ErrInvalidPassword = fmt.Errorf("Invalid Password")
 )
 
 func NewAuthSvc(userRepo repos.UserRepo,
@@ -147,7 +147,7 @@ func (s *AuthSvc) ForgotPw(ctx context.Context, email string) error {
 		return err
 	}
 	if user.UserID <= 0 {
-    return fmt.Errorf("No user found for email '%v': %w\n", email, ErrNoUser)
+		return fmt.Errorf("No user found for email '%v': %w\n", email, ErrNoUser)
 	}
 	userId := user.UserID
 

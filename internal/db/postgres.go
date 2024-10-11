@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/jackc/pgx/v5/pgxpool"
-  "github.com/frozenkro/dirtie-srv/internal/core"
 )
 
 func PgConnect() (*pgxpool.Pool, error) {

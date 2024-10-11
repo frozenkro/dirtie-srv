@@ -7,10 +7,10 @@ import (
 	"net/http"
 
 	"github.com/frozenkro/dirtie-srv/internal/api/middleware"
-	"github.com/frozenkro/dirtie-srv/internal/di"
 	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
 	"github.com/frozenkro/dirtie-srv/internal/db/repos"
+	"github.com/frozenkro/dirtie-srv/internal/di"
 	"github.com/frozenkro/dirtie-srv/internal/services"
 )
 
@@ -94,12 +94,12 @@ func loginHandler(authSvc services.AuthSvc) http.Handler {
 
 		token, err := authSvc.Login(r.Context(), args.Email, args.Password)
 		if err != nil {
-      if errors.Is(err, services.ErrInvalidPassword) {
-        http.Error(w, err.Error(), http.StatusUnauthorized)
-      } else {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-      }
+			if errors.Is(err, services.ErrInvalidPassword) {
+				http.Error(w, err.Error(), http.StatusUnauthorized)
+			} else {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 		}
 
 		cookie := http.Cookie{

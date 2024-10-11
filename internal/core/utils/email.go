@@ -3,9 +3,9 @@ package utils
 import (
 	"context"
 
+	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
-  "github.com/frozenkro/dirtie-srv/internal/core"
 )
 
 type EmailSender interface {
