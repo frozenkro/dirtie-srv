@@ -14,6 +14,7 @@ import (
 	"github.com/frozenkro/dirtie-srv/internal/core/int_tst"
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
 	"github.com/frozenkro/dirtie-srv/internal/di"
+	"github.com/frozenkro/dirtie-srv/internal/services"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -158,4 +159,89 @@ func TestLogin(t *testing.T) {
     assert.Greater(t, session.ExpiresAt.Time, session.CreatedAt.Time)
     assert.True(t, recentTime.Before(session.CreatedAt.Time))
   })
+
+  t.Run("InvalidPassword", func(t *testing.T) {
+    loginArgs := LoginArgs{
+      Email: int_tst.TestUser.Email,
+      Password: "wrongpw",
+    }
+
+    loginBytes, err := json.Marshal(loginArgs)
+    if err != nil {
+      t.Errorf("Error encoding request body: %v", err)
+    }
+
+    resp, err := http.Post(server.URL+"/login", "application/json", bytes.NewBuffer(loginBytes))
+    if err != nil {
+      t.Errorf("API client returned error: %v", err)
+    }
+
+    assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+    assert.Zero(t, len(resp.Cookies()))
+  })
+
+}
+
+func TestLogout(t *testing.T) {
+  ctx := context.Background()
+  db := int_tst.SetupTests()
+  defer db.Close(ctx)
+
+  deps := di.NewDeps()
+  server := httptest.NewServer(logoutHandler(deps.AuthSvc))
+  defer server.Close()
+
+  t.Run("Success", func(t *testing.T) {
+    cookie := getCookie(deps.AuthSvc, t)
+
+    req, err := http.NewRequestWithContext(ctx, http.MethodPost, server.URL, nil)
+    if err != nil {
+      t.Errorf("Error creating http request: %v", err)
+    }
+    req.AddCookie(cookie)
+
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil {
+      t.Errorf("Error thrown by http client: %v", err)
+    }
+    
+    assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+    sessionR, err := db.Query(ctx,
+      "SELECT * FROM sessions WHERE user_id = $1",
+      int_tst.TestUser.UserID,
+    )
+    assert.False(t, sessionR.Next())
+  })
+}
+
+func getCookie(s services.AuthSvc, t *testing.T) *http.Cookie {
+  srv := httptest.NewServer(loginHandler(s))
+  defer srv.Close()
+
+  loginArgs := LoginArgs{
+    Email: int_tst.TestUser.Email,
+    Password: "testpw",
+  }
+
+  loginBytes, err := json.Marshal(loginArgs)
+  if err != nil {
+    t.Errorf("Error encoding request body: %v", err)
+  }
+
+  resp, err := http.Post(srv.URL+"/login", "application/json", bytes.NewBuffer(loginBytes))
+  if err != nil {
+    t.Errorf("Error authenticating session: %v", err)
+  }
+
+  cookies := resp.Cookies()
+  cookieIdx := slices.IndexFunc(
+    cookies, 
+    func(c *http.Cookie) bool { return c.Name == core.AUTH_COOKIE_NAME },
+  )
+  if cookieIdx < 0 {
+    t.Fatalf("No cookie found when authenticating session")
+  }
+  
+  return cookies[cookieIdx]
 }
