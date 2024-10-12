@@ -14,7 +14,7 @@ type BrdCrmSvc struct {
 	DeviceRetriever DeviceRetriever
 }
 type BreadCrumb struct {
-  MacAddr     string
+	MacAddr     string
 	Capacitance int64
 	Temperature int64
 }

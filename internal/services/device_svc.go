@@ -21,8 +21,8 @@ type DeviceSvc struct {
 }
 
 type DevicePrvPayload struct {
-  MacAddr  string
-  Contract string
+	MacAddr  string
+	Contract string
 }
 
 func NewDeviceSvc(deviceRepo repos.DeviceRepo,

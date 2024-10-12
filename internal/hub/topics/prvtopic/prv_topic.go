@@ -9,24 +9,24 @@ import (
 )
 
 type ProvisionTopic struct {
-  deviceSvc services.DeviceSvc
+	deviceSvc services.DeviceSvc
 }
 
 func NewProvisionTopic(deviceSvc services.DeviceSvc) *ProvisionTopic {
-  return &ProvisionTopic{deviceSvc: deviceSvc}
+	return &ProvisionTopic{deviceSvc: deviceSvc}
 }
 
-func(t *ProvisionTopic) InvokeTopic(ctx context.Context, payload []byte) error {
-  var data services.DevicePrvPayload
-  err := json.Unmarshal(payload, data)
-  if err != nil {
-    return fmt.Errorf("Error ProvisionTopic InvokeTopic -> Unmarshal: %w", err)
-  }
+func (t *ProvisionTopic) InvokeTopic(ctx context.Context, payload []byte) error {
+	var data services.DevicePrvPayload
+	err := json.Unmarshal(payload, data)
+	if err != nil {
+		return fmt.Errorf("Error ProvisionTopic InvokeTopic -> Unmarshal: %w", err)
+	}
 
-  _, err = t.deviceSvc.CompleteDeviceProvision(ctx, data)
-  if err != nil {
-    return fmt.Errorf("Error ProvisionTopic InvokeTopic -> Unmarshal: %w", err)
-  }
+	_, err = t.deviceSvc.CompleteDeviceProvision(ctx, data)
+	if err != nil {
+		return fmt.Errorf("Error ProvisionTopic InvokeTopic -> Unmarshal: %w", err)
+	}
 
-  return nil
+	return nil
 }

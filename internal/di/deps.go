@@ -10,8 +10,8 @@ import (
 )
 
 type Deps struct {
-  BrdCrmTopic    *brdcrm_topic.BrdCrmTopic
-  ProvisionTopic *prv_topic.ProvisionTopic
+	BrdCrmTopic    *brdcrm_topic.BrdCrmTopic
+	ProvisionTopic *prv_topic.ProvisionTopic
 
 	AuthSvc   services.AuthSvc
 	BrdCrmSvc services.BrdCrmSvc
@@ -53,12 +53,12 @@ func NewDeps() *Deps {
 	deviceSvc := services.NewDeviceSvc(deviceRepo, provStgRepo, ctxUtil)
 	brdCrmSvc := services.NewBrdCrmSvc(influxRepo, influxRepo, deviceSvc)
 
-  brdCrmTopic := brdcrm_topic.NewBrdCrmTopic(brdCrmSvc)
-  prvTopic := prv_topic.NewProvisionTopic(*deviceSvc)
+	brdCrmTopic := brdcrm_topic.NewBrdCrmTopic(brdCrmSvc)
+	prvTopic := prv_topic.NewProvisionTopic(*deviceSvc)
 
 	return &Deps{
-    BrdCrmTopic:         brdCrmTopic,
-    ProvisionTopic:      prvTopic,
+		BrdCrmTopic:         brdCrmTopic,
+		ProvisionTopic:      prvTopic,
 		AuthSvc:             *authSvc,
 		BrdCrmSvc:           brdCrmSvc,
 		DeviceSvc:           *deviceSvc,
