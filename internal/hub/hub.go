@@ -6,15 +6,17 @@ import (
 	"os"
 
 	"github.com/eclipse/paho.mqtt.golang"
-	"github.com/frozenkro/dirtie-srv/internal/core/topics"
+	core_topics "github.com/frozenkro/dirtie-srv/internal/core/topics"
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
 	"github.com/frozenkro/dirtie-srv/internal/di"
+  "github.com/frozenkro/dirtie-srv/internal/hub/topics"
 )
 
 var (
 	totalReconnectAttempts int = 10
 	client                 mqtt.Client
 	deps                   *di.Deps
+  ErrTopicNotFound       error = fmt.Errorf("MQTT Topic Not Found")
 )
 
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
@@ -24,19 +26,25 @@ var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Me
 	topic := string(msg.Topic())
 	utils.LogInfo(fmt.Sprintf("Received message: %s from topic %s\n", string(msg.Payload()), topic))
 
-	var err error
-	switch topic {
-	case topics.Breadcrumb:
-		err = deps.BrdCrmTopic.InvokeTopic(ctx, msg.Payload())
-	case topics.Provision:
-		err = deps.ProvisionTopic.InvokeTopic(ctx, msg.Payload())
-	default:
-		utils.LogInfo(fmt.Sprintf("Topic %v not recognized", topic))
-	}
+  ivk, err := getTopicInvoker(msg.Topic())
+  if ivk != nil {
+    err = ivk.InvokeTopic(ctx, msg.Payload())
+  }
 
 	if err != nil {
 		utils.LogErr(fmt.Errorf("Error MessagePubHandler -> InvokeTopic: %w", err).Error())
 	}
+}
+
+func getTopicInvoker(topic string) (topics.TopicInvoker, error) {
+  switch topic {
+  case core_topics.Breadcrumb:
+    return deps.BrdCrmTopic, nil
+  case core_topics.Provision:
+    return deps.ProvisionTopic, nil
+  default:
+    return nil, ErrTopicNotFound
+  }
 }
 
 var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {

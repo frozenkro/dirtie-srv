@@ -11,9 +11,9 @@ import (
 )
 
 type DeviceDataPoint struct {
-	value int64
-	time  time.Time
-	key   string
+	Value int64
+	Time  time.Time
+	Key   string
 }
 
 type DeviceDataRecorder interface {
@@ -78,9 +78,9 @@ func (r InfluxRepo) GetLatestValue(
 	}
 
 	return DeviceDataPoint{
-		value: valInt,
-		time:  qRes.Record().Time(),
-		key:   qRes.Record().Field(),
+		Value: valInt,
+		Time:  qRes.Record().Time(),
+		Key:   qRes.Record().Field(),
 	}, nil
 }
 
