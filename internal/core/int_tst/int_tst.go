@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -24,7 +25,11 @@ var (
 )
 
 func TestContext(t *testing.T) context.Context {
-  return context.WithValue(context.Background(), "testdb", t.Name())
+  return context.WithValue(
+    context.Background(), 
+    "testdb", 
+    strings.ToLower(t.Name()),
+  )
 }
 
 func SetupTests(ctx context.Context, t *testing.T) *pgx.Conn {
@@ -55,12 +60,12 @@ func connectDb(ctx context.Context, t *testing.T) *pgx.Conn {
 	}
   defer maintDb.Close(ctx)
 
-  exists := false
+  exists := 0
   err = maintDb.QueryRow(ctx, "SELECT 1 FROM pg_database WHERE datname = $1", dbName).Scan(&exists)
   if err != nil && !errors.Is(err, pgx.ErrNoRows) {
     t.Fatalf("Error occurred when checking for test db '%v' existence: %v", dbName, err)
   }
-  if exists {
+  if exists == 1 {
     t.Fatalf("Cannot create db for test '%v'. Test name is not unique", dbName)
   }
 

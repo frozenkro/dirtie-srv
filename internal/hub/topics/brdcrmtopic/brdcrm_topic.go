@@ -17,8 +17,8 @@ func NewBrdCrmTopic(brdCrmSvc services.BrdCrmSvc) *BrdCrmTopic {
 }
 
 func (t *BrdCrmTopic) InvokeTopic(ctx context.Context, payload []byte) error {
-	var data services.BreadCrumb
-	err := json.Unmarshal(payload, data)
+  data := services.BreadCrumb{}
+	err := json.Unmarshal(payload, &data)
 	if err != nil {
 		return fmt.Errorf("Error BrdCrmTopic InvokeTopic -> Unmarshal: %w", err)
 	}

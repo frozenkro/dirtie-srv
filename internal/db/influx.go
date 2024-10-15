@@ -36,7 +36,7 @@ func NewInfluxRepo() InfluxRepo {
 
 func initIxClient() influxdb2.Client {
 	uri := core.INFLUX_URI
-	return influxdb2.NewClient("http:"+uri, core.INFLUX_TOKEN)
+	return influxdb2.NewClient("http://"+uri, core.INFLUX_TOKEN)
 }
 
 func (r InfluxRepo) Record(ctx context.Context, deviceId int, measurementKey string, value int64) error {
