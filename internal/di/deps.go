@@ -1,6 +1,8 @@
 package di
 
 import (
+  "context"
+
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
 	"github.com/frozenkro/dirtie-srv/internal/db"
 	"github.com/frozenkro/dirtie-srv/internal/db/repos"
@@ -31,8 +33,10 @@ type Deps struct {
 	UserGetter  utils.UserGetter
 }
 
-func NewDeps() *Deps {
-	rf, err := repos.NewRepoFactory()
+// context is just used for passing test-specific config around
+// Main app should just pass background context
+func NewDeps(ctx context.Context) *Deps {
+	rf, err := repos.NewRepoFactory(ctx)
 	if err != nil {
 		panic("Failed to setup repositories")
 	}

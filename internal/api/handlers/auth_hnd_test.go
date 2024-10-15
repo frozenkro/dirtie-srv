@@ -19,11 +19,11 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
-	ctx := context.Background()
-	db := int_tst.SetupTests()
+	ctx := int_tst.TestContext(t)
+	db := int_tst.SetupTests(ctx, t)
 	defer db.Close(ctx)
 
-	deps := di.NewDeps()
+	deps := di.NewDeps(ctx)
 	server := httptest.NewServer(createUserHandler(deps.AuthSvc))
 	defer server.Close()
 
@@ -91,11 +91,11 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestLogin(t *testing.T) {
-	ctx := context.Background()
-	db := int_tst.SetupTests()
+	ctx := int_tst.TestContext(t)
+	db := int_tst.SetupTests(ctx, t)
 	defer db.Close(ctx)
 
-	deps := di.NewDeps()
+	deps := di.NewDeps(ctx)
 	server := httptest.NewServer(loginHandler(deps.AuthSvc))
 	defer server.Close()
 
@@ -183,11 +183,11 @@ func TestLogin(t *testing.T) {
 }
 
 func TestLogout(t *testing.T) {
-	ctx := context.Background()
-	db := int_tst.SetupTests()
+	ctx := int_tst.TestContext(t)
+	db := int_tst.SetupTests(ctx, t)
 	defer db.Close(ctx)
 
-	deps := di.NewDeps()
+	deps := di.NewDeps(ctx)
 	server := httptest.NewServer(logoutHandler(deps.AuthSvc))
 	defer server.Close()
 

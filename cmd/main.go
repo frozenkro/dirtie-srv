@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -19,10 +20,10 @@ func main() {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	core.SetupEnv()
-	deps := di.NewDeps()
+	deps := di.NewDeps(context.Background())
 
 	go api.Init(deps)
-	go hub.Init()
+	go hub.Init(deps)
 
 	<-sigChan
 

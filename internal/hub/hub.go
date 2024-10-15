@@ -68,13 +68,11 @@ func attemptReconnect() {
 	panic("Failed to reconnect to mqtt broker")
 }
 
-func Init() {
+func Init(deps *di.Deps) {
 	uri, ok := os.LookupEnv("MOSQUITTO_URI")
 	if !ok {
 		uri = "localhost:1883"
 	}
-
-	deps = di.NewDeps()
 
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s", uri))

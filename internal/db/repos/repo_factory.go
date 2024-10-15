@@ -6,6 +6,8 @@
 package repos
 
 import (
+	"context"
+
 	"github.com/frozenkro/dirtie-srv/internal/db"
 )
 
@@ -21,8 +23,8 @@ type repoFactoryImpl struct {
 	tm *TxManager
 }
 
-func NewRepoFactory() (RepoFactory, error) {
-	pool, err := db.PgConnect()
+func NewRepoFactory(ctx context.Context) (RepoFactory, error) {
+	pool, err := db.PgConnect(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -2,8 +2,10 @@ package int_tst
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
+	"testing"
 	"time"
 
 	"github.com/frozenkro/dirtie-srv/internal/core"
@@ -21,32 +23,65 @@ var (
 	TestProvStg      sqlc.ProvisionStaging
 )
 
-func SetupTests() *pgx.Conn {
-	var db *pgx.Conn
+func TestContext(t *testing.T) context.Context {
+  return context.WithValue(context.Background(), "testdb", t.Name())
+}
+
+func SetupTests(ctx context.Context, t *testing.T) *pgx.Conn {
 	if !initSetup {
 		core.SetupTestEnv()
-		db = connectDb()
-		setupDb(db)
 		initSetup = true
-	} else {
-		db = connectDb()
-	}
+	} 
+
+  db := connectDb(ctx, t)
+  setupDb(db)
 	return db
 }
 
-func connectDb() *pgx.Conn {
-	connstr := fmt.Sprintf("postgres://%v:%v@%v/%v",
+func connectDb(ctx context.Context, t *testing.T) *pgx.Conn {
+  dbName := ctx.Value("testdb")
+  if dbName == nil || dbName == "" {
+    t.Fatalf("Test '%v' does not pass context with testdb value to connectDb. Use TestContext(t)", t.Name())
+  }
+
+	mconnstr := fmt.Sprintf("postgres://%v:%v@%v/%v",
 		core.POSTGRES_USER,
 		core.POSTGRES_PASSWORD,
 		core.POSTGRES_SERVER,
-		core.POSTGRES_DB)
-	db, err := pgx.Connect(context.Background(), connstr)
+		"postgres")
+	maintDb, err := pgx.Connect(ctx, mconnstr)
 	if err != nil {
-		panic(fmt.Errorf("Error connecting to test db: %w", err))
+		t.Fatalf("Error connecting to test maintenance db: %v", err)
 	}
+  defer maintDb.Close(ctx)
+
+  exists := false
+  err = maintDb.QueryRow(ctx, "SELECT 1 FROM pg_database WHERE datname = $1", dbName).Scan(&exists)
+  if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+    t.Fatalf("Error occurred when checking for test db '%v' existence: %v", dbName, err)
+  }
+  if exists {
+    t.Fatalf("Cannot create db for test '%v'. Test name is not unique", dbName)
+  }
+
+  _, err = maintDb.Exec(ctx, fmt.Sprintf("CREATE DATABASE %v", dbName))
+  if err != nil {
+    t.Fatalf("Error occurred when creating test db '%v': %v", dbName, err)
+  }
+
+  connstr := fmt.Sprintf("postgres://%v:%v@%v/%v",
+    core.POSTGRES_USER,
+    core.POSTGRES_PASSWORD,
+    core.POSTGRES_SERVER,
+    dbName)
+  db, err := pgx.Connect(ctx, connstr)
+  if err != nil {
+    t.Fatalf("Error connecting to freshly created test db '%v': %v", dbName, err)
+  }
 
 	return db
 }
+
 func setupDb(db *pgx.Conn) {
 	schema, err := os.ReadFile(core.ProjectRootDir() + "/internal/db/sqlc/schema.sql")
 	if err != nil {

@@ -2,7 +2,6 @@
 package topics_tests
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -16,11 +15,11 @@ import (
 )
 
 func TestBrdCrmInvokeTopic(t *testing.T) {
-  ctx := context.Background()
-  db := int_tst.SetupTests()
+  ctx := int_tst.TestContext(t)
+  db := int_tst.SetupTests(ctx, t)
   defer db.Close(ctx)
 
-  deps := di.NewDeps()
+  deps := di.NewDeps(ctx)
   sut := brdcrm_topic.NewBrdCrmTopic(deps.BrdCrmSvc)
 
   t.Run("Success", func(t *testing.T) {
