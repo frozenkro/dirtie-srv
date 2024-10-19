@@ -35,7 +35,7 @@ func TestBrdCrmInvokeTopic(t *testing.T) {
 
     err = sut.InvokeTopic(ctx, dBytes)
 
-    assert.Nil(t, err, fmt.Sprintf("InvokeTopic error: %v", err.Error()))
+    assert.Nil(t, err, fmt.Sprintf("InvokeTopic error: %v", err))
 
     capData, err := deps.DeviceDataRetriever.GetLatestValue(ctx, int(int_tst.TestDevice.DeviceID), core.Capacitance)
     if err != nil {

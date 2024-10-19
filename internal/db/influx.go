@@ -8,6 +8,7 @@ import (
 
 	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/api"
 )
 
 type DeviceDataPoint struct {
@@ -61,27 +62,20 @@ func (r InfluxRepo) GetLatestValue(
 
 	query := fmt.Sprintf(`
     from(bucket:"%v")
+    |> range(start: -1w)
     |> filter(fn: (r) => r._measurement == "%v" and r._field == "%v")
-    |> sort(columns: ["_time"], desc: true)
-    |> limit(n:1)`, core.INFLUX_DEFAULT_BUCKET, measurementKey, measurementKey)
+    |> last()`, core.INFLUX_DEFAULT_BUCKET, measurementKey, measurementKey)
 
 	qRes, err := queryAPI.Query(ctx, query)
 	if err != nil {
 		return DeviceDataPoint{}, fmt.Errorf("Error GetLatestValue -> Query: %w", err)
 	}
 
-	// TODO break me out to testable unit
-	val := qRes.Record().Value()
-	valInt, succ := val.(int64)
-	if !succ {
-		return DeviceDataPoint{}, fmt.Errorf("Error in GetLatestValue - failed to cast influx result. deviceId: '%v', measurementKey: '%v'", deviceId, measurementKey)
-	}
+  if !qRes.Next() {
+		return DeviceDataPoint{}, nil
+  }
 
-	return DeviceDataPoint{
-		Value: valInt,
-		Time:  qRes.Record().Time(),
-		Key:   qRes.Record().Field(),
-	}, nil
+	return newDeviceDataPoint(qRes)
 }
 
 func (r InfluxRepo) GetValuesRange(
@@ -95,8 +89,8 @@ func (r InfluxRepo) GetValuesRange(
 
 	query := fmt.Sprintf(`
     from(bucket:"%v")
-    |> filter(fn: (r) => r._measurement == "%v" and r._field == "%v")
     |> range(start: "%v", stop: "%v")
+    |> filter(fn: (r) => r._measurement == "%v" and r._field == "%v")
   `, core.INFLUX_DEFAULT_BUCKET, measurementKey, measurementKey, start.Format(time.RFC3339), end.Format(time.RFC3339))
 
 	qRes, err := queryAPI.Query(ctx, query)
@@ -104,12 +98,44 @@ func (r InfluxRepo) GetValuesRange(
 		return nil, fmt.Errorf("Error GetValuesRange -> Query: %w", err)
 	}
 
-	// TODO break me out to testable unit
-	for qRes.Next() {
-		// TODO.. linked list to array I guess.
+	return llToSlice(qRes)
+}
+
+func llToSlice(r *api.QueryTableResult) ([]DeviceDataPoint, error) {
+  var d []DeviceDataPoint
+	for r.Next() {
+    p, err := newDeviceDataPoint(r)
+    if err != nil {
+      return nil, fmt.Errorf(
+        "Error GetValuesRange -> newDeviceDataPoint: %w", 
+        err)
+    }
+    d = append(d, p)
 	}
-	//temp
-	return nil, nil
+  return d, nil
+}
+
+func newDeviceDataPoint(r *api.QueryTableResult) (DeviceDataPoint, error) {
+  val := r.Record().Value()
+  if r == nil || r.Record() == nil {
+    return DeviceDataPoint{}, fmt.Errorf(
+      `Error in newDeviceDataPoint - no influx result`,
+    )
+  }
+  valInt, succ := val.(int64)
+  if !succ {
+    return DeviceDataPoint{}, fmt.Errorf(
+      `Error in newDeviceDataPoint - failed to cast influx result. 
+      deviceId: '%v', measurementKey: '%v'`, 
+      r.Record().ValueByKey("device"), 
+      r.Record().Measurement(),
+    )  
+  }
+  return DeviceDataPoint{
+    Value: valInt,
+    Time:  r.Record().Time(),
+    Key:   r.Record().Field(),
+  }, nil
 }
 
 func (r *InfluxRepo) Disconnect() {
