@@ -14,6 +14,7 @@ type BrdCrmSvc struct {
 	DeviceRetriever DeviceRetriever
 }
 type BreadCrumb struct {
+	MacAddr     string
 	Capacitance int64
 	Temperature int64
 }
@@ -26,13 +27,13 @@ var (
 	ErrNoDevice = fmt.Errorf("Device not found")
 )
 
-func (s BrdCrmSvc) RecordBrdCrm(ctx context.Context, macAddr string, brdCrm BreadCrumb) error {
-	dvc, err := s.DeviceRetriever.GetDeviceByMacAddr(ctx, macAddr)
+func (s BrdCrmSvc) RecordBrdCrm(ctx context.Context, brdCrm BreadCrumb) error {
+	dvc, err := s.DeviceRetriever.GetDeviceByMacAddr(ctx, brdCrm.MacAddr)
 	if err != nil {
 		return fmt.Errorf("Error RecordCapacitance -> GetDeviceByMacAddr: \n%w\n", err)
 	}
 	if dvc.DeviceID <= 0 {
-		return fmt.Errorf("Error in RecordCapacitance (macAddr: %v): \n%w\n", macAddr, ErrNoDevice)
+		return fmt.Errorf("Error in RecordCapacitance (macAddr: %v): \n%w\n", brdCrm.MacAddr, ErrNoDevice)
 	}
 
 	err = s.DataRecorder.Record(ctx, int(dvc.DeviceID), core.Capacitance, brdCrm.Capacitance)

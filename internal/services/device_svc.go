@@ -20,6 +20,11 @@ type DeviceSvc struct {
 	userGetter utils.UserGetter
 }
 
+type DevicePrvPayload struct {
+	MacAddr  string
+	Contract string
+}
+
 func NewDeviceSvc(deviceRepo repos.DeviceRepo,
 	prvStgRepo repos.ProvisionStagingRepo,
 	userGetter utils.UserGetter) *DeviceSvc {
@@ -71,20 +76,20 @@ func (s DeviceSvc) CreateDeviceProvision(ctx context.Context, displayName string
 }
 
 // Called by device via mqtt hub
-func (s DeviceSvc) CompleteDeviceProvision(ctx context.Context, contract string, macAddr string) (sqlc.Device, error) {
+func (s DeviceSvc) CompleteDeviceProvision(ctx context.Context, data DevicePrvPayload) (sqlc.Device, error) {
 	// lookup contract (uuid) from provision staging table
-	prv, err := s.prvStgRepo.GetProvisionStagingByContract(ctx, contract)
+	prv, err := s.prvStgRepo.GetProvisionStagingByContract(ctx, data.Contract)
 	if err != nil {
 		return sqlc.Device{}, fmt.Errorf("Error CompleteDeviceProvision -> GetProvisionStagingByContract: \n%w\n", err)
 	}
 
 	// update mac address of device record
-	err = s.deviceRepo.UpdateDeviceMacAddress(ctx, prv.DeviceID, macAddr)
+	err = s.deviceRepo.UpdateDeviceMacAddress(ctx, prv.DeviceID, data.MacAddr)
 	if err != nil {
 		return sqlc.Device{}, fmt.Errorf("Error CompleteDeviceProvision -> UpdateDeviceMacAddress: \n%w\n", err)
 	}
 	// return device (ID will be used for influxdb entries)
-	device, err := s.deviceRepo.GetDeviceByMacAddress(ctx, macAddr)
+	device, err := s.deviceRepo.GetDeviceByMacAddress(ctx, data.MacAddr)
 	if err != nil {
 		return sqlc.Device{}, fmt.Errorf("Error CompleteDeviceProvision -> GetDeviceByMacAddress: \n%w\n", err)
 	}

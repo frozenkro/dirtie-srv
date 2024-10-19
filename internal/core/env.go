@@ -26,6 +26,8 @@ var (
 	DIRTIE_ENV       string
 	DOMAIN           string
 	SENDGRID_API_KEY string
+
+  IS_TEST          bool = false
 )
 
 func ProjectRootDir() string {
@@ -37,6 +39,8 @@ func ProjectRootDir() string {
 func SetupTestEnv() {
 	SetupEnv()
 	POSTGRES_SERVER = os.Getenv("POSTGRES_TEST_SERVER")
+  INFLUX_URI = os.Getenv("INFLUX_TEST_URI")
+  IS_TEST = true
 }
 
 func SetupEnv() {

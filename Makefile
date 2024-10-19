@@ -15,7 +15,7 @@ debug:
 	dlv debug github.com/frozenkro/dirtie-srv/cmd/main.go
 
 test:
-	docker-compose up -d pg_test
+	docker-compose up -d pg_test ix_test
 	sleep 1
 	go test ./... || docker-compose rm -fsv pg_test
-	docker-compose rm -fsv pg_test
+	docker-compose rm -fsv pg_test ix_test

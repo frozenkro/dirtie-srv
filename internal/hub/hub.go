@@ -1,54 +1,74 @@
 package hub
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/eclipse/paho.mqtt.golang"
-	"github.com/frozenkro/dirtie-srv/internal/core/topics"
+	core_topics "github.com/frozenkro/dirtie-srv/internal/core/topics"
+	"github.com/frozenkro/dirtie-srv/internal/core/utils"
+	"github.com/frozenkro/dirtie-srv/internal/di"
+  "github.com/frozenkro/dirtie-srv/internal/hub/topics"
 )
 
 var (
 	totalReconnectAttempts int = 10
 	client                 mqtt.Client
+	deps                   *di.Deps
+  ErrTopicNotFound       error = fmt.Errorf("MQTT Topic Not Found")
 )
 
 var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	topic := string(msg.Topic())
-	fmt.Printf("Received message: %s from topic %s\n", string(msg.Payload()), topic)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	switch topic {
-	case topics.Breadcrumb:
-		// need deps injected
-	case topics.Provision:
-		// yep still need deps
-	default:
-		fmt.Printf("Topic %v not recognized", topic)
+	topic := string(msg.Topic())
+	utils.LogInfo(fmt.Sprintf("Received message: %s from topic %s\n", string(msg.Payload()), topic))
+
+  ivk, err := getTopicInvoker(msg.Topic())
+  if ivk != nil {
+    err = ivk.InvokeTopic(ctx, msg.Payload())
+  }
+
+	if err != nil {
+		utils.LogErr(fmt.Errorf("Error MessagePubHandler -> InvokeTopic: %w", err).Error())
 	}
 }
 
+func getTopicInvoker(topic string) (topics.TopicInvoker, error) {
+  switch topic {
+  case core_topics.Breadcrumb:
+    return deps.BrdCrmTopic, nil
+  case core_topics.Provision:
+    return deps.ProvisionTopic, nil
+  default:
+    return nil, ErrTopicNotFound
+  }
+}
+
 var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
-	fmt.Printf("connected to mqtt broker\n")
+	utils.LogInfo(fmt.Sprintf("connected to mqtt broker\n"))
 }
 
 var connectionLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err error) {
-	fmt.Printf("disconnected from mqtt broker\n")
+	utils.LogInfo(fmt.Sprintf("disconnected from mqtt broker\n"))
 	attemptReconnect()
 }
 
 func attemptReconnect() {
 	for i := 1; i <= totalReconnectAttempts; i++ {
-		fmt.Printf("attempting to reconnect (%d/%d)\n", i, totalReconnectAttempts)
+		utils.LogInfo(fmt.Sprintf("attempting to reconnect (%d/%d)\n", i, totalReconnectAttempts))
 
 		if token := client.Connect(); token.Wait() && token.Error() == nil {
-			fmt.Printf("Reconnect successful\n")
+			utils.LogInfo(fmt.Sprintf("Reconnect successful\n"))
 			return
 		}
 	}
 	panic("Failed to reconnect to mqtt broker")
 }
 
-func Init() {
+func Init(deps *di.Deps) {
 	uri, ok := os.LookupEnv("MOSQUITTO_URI")
 	if !ok {
 		uri = "localhost:1883"

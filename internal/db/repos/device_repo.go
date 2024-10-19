@@ -35,7 +35,7 @@ func (r *deviceRepoImpl) CreateDevice(ctx context.Context, userId int32, display
 
 func (r *deviceRepoImpl) GetDeviceByMacAddress(ctx context.Context, macAddr string) (sqlc.Device, error) {
 	res, err := r.sr.Query(ctx, func(q *sqlc.Queries) (interface{}, error) {
-		return q.GetDeviceByMacAddress(ctx, pgtype.Text{String: macAddr})
+    return q.GetDeviceByMacAddress(ctx, pgtype.Text{String: macAddr, Valid: true})
 	})
 
 	if err != nil || res == nil {

@@ -1,6 +1,7 @@
 .env
 main
 __debug*
+debug.test*
 
 ./mosquitto/
 !./mosquitto/config/mosquitto.conf
