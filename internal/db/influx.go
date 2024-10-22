@@ -17,15 +17,6 @@ type DeviceDataPoint struct {
 	Key   string
 }
 
-type DeviceDataRecorder interface {
-	Record(ctx context.Context, deviceId int, measurementKey string, value int64) error
-}
-
-type DeviceDataRetriever interface {
-	GetLatestValue(ctx context.Context, deviceId int, measurementKey string) (DeviceDataPoint, error)
-	GetValuesRange(ctx context.Context, deviceId int, measurementKey string, start time.Time, end time.Time) ([]DeviceDataPoint, error)
-}
-
 type InfluxRepo struct {
 	client *influxdb2.Client
 }

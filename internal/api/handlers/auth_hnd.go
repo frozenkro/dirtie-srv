@@ -62,7 +62,7 @@ func SetupAuthHandlers(deps *di.Deps) {
 		middleware.LogTransaction(),
 	))
 	http.Handle("/pw/change", middleware.Adapt(
-		changePwHandler(deps.AuthSvc, deps.HtmlParser, deps.UserRepo),
+		changePwHandler(deps.AuthSvc, deps.HtmlUtil, deps.UserRepo),
 		middleware.LogTransaction(),
 	))
 }

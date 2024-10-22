@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/frozenkro/dirtie-srv/internal/core"
-	"github.com/frozenkro/dirtie-srv/internal/db/repos"
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -36,13 +35,34 @@ type UserWriter interface {
 	UpdateLastLoginTime(ctx context.Context, userId int32) error
 }
 
+type SessionReader interface {
+	GetSession(ctx context.Context, token string) (sqlc.Session, error)
+}
+type SessionWriter interface {
+	CreateSession(ctx context.Context, userId int32, token string, expiresAt time.Time) error
+	DeleteSession(ctx context.Context, token string) error
+	DeleteUserSessions(ctx context.Context, userId int32) error
+}
+
+type PwResetReader interface {
+	GetPwResetToken(ctx context.Context, token string) (sqlc.PwResetToken, error)
+}
+type PwResetWriter interface {
+	CreatePwResetToken(ctx context.Context, userId int32, token string, expiresAt time.Time) error
+	DeletePwResetToken(ctx context.Context, token string) error
+	DeleteUserPwResetTokens(ctx context.Context, userId int32) error
+}
+
+
 type AuthSvc struct {
-  userReader  UserReader
-  userWriter  UserWriter
-	sessionRepo repos.SessionRepo
-	pwResetRepo repos.PwResetRepo
-	htmlParser  HtmlParser
-	emailSender EmailSender
+  userReader    UserReader
+  userWriter    UserWriter
+  sessionReader SessionReader
+  sessionWriter SessionWriter
+  pwResetReader PwResetReader
+  pwResetWriter PwResetWriter
+	htmlParser    HtmlParser
+	emailSender   EmailSender
 }
 
 var (
@@ -55,16 +75,20 @@ var (
 
 func NewAuthSvc(userReader UserReader,
   userWriter UserWriter,
-	sessionRepo repos.SessionRepo,
-	pwResetRepo repos.PwResetRepo,
+  sessionReader SessionReader,
+  sessionWriter SessionWriter,
+  pwResetReader PwResetReader, 
+  pwResetWriter PwResetWriter,
 	htmlParser HtmlParser,
 	emailSender EmailSender) *AuthSvc {
 
 	return &AuthSvc{
     userReader:  userReader,
     userWriter:  userWriter,
-		sessionRepo: sessionRepo,
-		pwResetRepo: pwResetRepo,
+    sessionReader: sessionReader,
+    sessionWriter: sessionWriter,
+    pwResetReader: pwResetReader,
+    pwResetWriter: pwResetWriter,
 		htmlParser:  htmlParser,
 		emailSender: emailSender,
 	}
@@ -113,7 +137,7 @@ func (s *AuthSvc) Login(ctx context.Context, email string, password string) (str
 		return "", fmt.Errorf("Error Login -> UpdateLastLoginTime: \n%w\n", err)
 	}
 
-	err = s.sessionRepo.DeleteUserSessions(ctx, user.UserID)
+	err = s.sessionWriter.DeleteUserSessions(ctx, user.UserID)
 	if err != nil {
 		return "", fmt.Errorf("Error Login -> DeleteUserSessions: \n%w\n", err)
 	}
@@ -123,7 +147,7 @@ func (s *AuthSvc) Login(ctx context.Context, email string, password string) (str
 		return "", fmt.Errorf("Error Login -> createToken: \n%w\n", err)
 	}
 
-	err = s.sessionRepo.CreateSession(ctx, user.UserID, token, expiresAt)
+	err = s.sessionWriter.CreateSession(ctx, user.UserID, token, expiresAt)
 	if err != nil {
 		return "", fmt.Errorf("Error Login -> CreateSession: \n%w\n", err)
 	}
@@ -131,7 +155,7 @@ func (s *AuthSvc) Login(ctx context.Context, email string, password string) (str
 }
 
 func (s *AuthSvc) ValidateToken(ctx context.Context, token string) (*sqlc.User, error) {
-	session, err := s.sessionRepo.GetSession(ctx, token)
+	session, err := s.sessionReader.GetSession(ctx, token)
 	if err != nil {
 		return nil, fmt.Errorf("Error ValidateToken -> GetSession: \n%w\n", err)
 	}
@@ -153,12 +177,12 @@ func (s *AuthSvc) ValidateToken(ctx context.Context, token string) (*sqlc.User, 
 }
 
 func (s *AuthSvc) Logout(ctx context.Context, token string) error {
-	session, err := s.sessionRepo.GetSession(ctx, token)
+	session, err := s.sessionReader.GetSession(ctx, token)
 	if err != nil {
 		return fmt.Errorf("Error Logout -> GetSession: \n%w\n", err)
 	}
 
-	err = s.sessionRepo.DeleteUserSessions(ctx, session.UserID)
+	err = s.sessionWriter.DeleteUserSessions(ctx, session.UserID)
 	if err != nil {
 		return fmt.Errorf("Error Logout -> DeleteUserSessions: \n%w\n", err)
 	}
@@ -182,11 +206,11 @@ func (s *AuthSvc) ForgotPw(ctx context.Context, email string) error {
 		return fmt.Errorf("Error ForgotPw -> createToken: \n%w\n", err)
 	}
 
-	err = s.pwResetRepo.DeleteUserPwResetTokens(ctx, userId)
+	err = s.pwResetWriter.DeleteUserPwResetTokens(ctx, userId)
 	if err != nil {
 		return fmt.Errorf("Error ForgotPw -> DeleteUserPwResetTokens: \n%w\n", err)
 	}
-	err = s.pwResetRepo.CreatePwResetToken(ctx, userId, token, expiresAt)
+	err = s.pwResetWriter.CreatePwResetToken(ctx, userId, token, expiresAt)
 	if err != nil {
 		return fmt.Errorf("Error ForgotPw -> CreatePwResetToken: \n%w\n", err)
 	}
@@ -223,7 +247,7 @@ func (s *AuthSvc) ValidateForgotPwToken(ctx context.Context, encToken string) (i
 	token := string(bytes)
 
 	// get token from db
-	res, err := s.pwResetRepo.GetPwResetToken(ctx, token)
+	res, err := s.pwResetReader.GetPwResetToken(ctx, token)
 	if err != nil {
 		return 0, fmt.Errorf("Error ValidateForgotPwToken -> GetPwResetToken: \n%w\n", err)
 	}
@@ -251,7 +275,7 @@ func (s *AuthSvc) ChangePw(ctx context.Context, encToken string, newPw string) e
 	}
 
 	s.userWriter.ChangePassword(ctx, userId, pwHash)
-	err = s.pwResetRepo.DeleteUserPwResetTokens(ctx, userId)
+	err = s.pwResetWriter.DeleteUserPwResetTokens(ctx, userId)
 	if err != nil {
 		return fmt.Errorf("Error ChangePw - An error occurred after successful password change: \n%w\n", err)
 	}

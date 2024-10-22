@@ -11,45 +11,37 @@ import (
 	"github.com/frozenkro/dirtie-srv/internal/db"
 )
 
-type RepoFactory interface {
-	NewUserRepo() UserRepo
-	NewDeviceRepo() DeviceRepo
-	NewSessionRepo() SessionRepo
-	NewProvisionStagingRepo() ProvisionStagingRepo
-	NewPwResetRepo() PwResetRepo
-}
-
-type repoFactoryImpl struct {
+type RepoFactory struct {
 	tm *TxManager
 }
 
 func NewRepoFactory(ctx context.Context) (RepoFactory, error) {
 	pool, err := db.PgConnect(ctx)
 	if err != nil {
-		return nil, err
+		return RepoFactory{}, err
 	}
 
 	tm := NewTxManager(pool)
 
-	return &repoFactoryImpl{tm: tm}, nil
+	return RepoFactory{tm: tm}, nil
 }
 
-func (f *repoFactoryImpl) NewUserRepo() UserRepo {
+func (f RepoFactory) NewUserRepo() UserRepo {
 	return UserRepo{sr: f.tm}
 }
 
-func (f *repoFactoryImpl) NewDeviceRepo() DeviceRepo {
-	return &deviceRepoImpl{sr: f.tm}
+func (f RepoFactory) NewDeviceRepo() DeviceRepo {
+	return DeviceRepo{sr: f.tm}
 }
 
-func (f *repoFactoryImpl) NewSessionRepo() SessionRepo {
-	return &sessionRepoImpl{sr: f.tm}
+func (f RepoFactory) NewSessionRepo() SessionRepo {
+	return SessionRepo{sr: f.tm}
 }
 
-func (f *repoFactoryImpl) NewProvisionStagingRepo() ProvisionStagingRepo {
-	return &provisionStagingRepoImpl{sr: f.tm}
+func (f RepoFactory) NewProvisionStagingRepo() ProvisionStagingRepo {
+	return ProvisionStagingRepo{sr: f.tm}
 }
 
-func (f *repoFactoryImpl) NewPwResetRepo() PwResetRepo {
-	return &pwResetRepoImpl{sr: f.tm}
+func (f RepoFactory) NewPwResetRepo() PwResetRepo {
+	return PwResetRepo{sr: f.tm}
 }

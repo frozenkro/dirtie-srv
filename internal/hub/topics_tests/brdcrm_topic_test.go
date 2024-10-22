@@ -37,13 +37,13 @@ func TestBrdCrmInvokeTopic(t *testing.T) {
 
     assert.Nil(t, err, fmt.Sprintf("InvokeTopic error: %v", err))
 
-    capData, err := deps.DeviceDataRetriever.GetLatestValue(ctx, int(int_tst.TestDevice.DeviceID), core.Capacitance)
+    capData, err := deps.InfluxRepo.GetLatestValue(ctx, int(int_tst.TestDevice.DeviceID), core.Capacitance)
     if err != nil {
       t.Errorf("Error retrieving capacitance data point: %v", err)
     }
     assert.Equal(t, data.Capacitance, capData.Value)
 
-    tempData, err := deps.DeviceDataRetriever.GetLatestValue(ctx, int(int_tst.TestDevice.DeviceID), core.Temperature)
+    tempData, err := deps.InfluxRepo.GetLatestValue(ctx, int(int_tst.TestDevice.DeviceID), core.Temperature)
     if err != nil {
       t.Errorf("Error retrieving temperature data point: %v", err)
     }
