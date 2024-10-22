@@ -6,19 +6,11 @@ import (
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
 )
 
-type UserRepo interface {
-	GetUser(ctx context.Context, userId int32) (sqlc.User, error)
-	GetUserFromEmail(ctx context.Context, email string) (sqlc.User, error)
-	CreateUser(ctx context.Context, email string, pwHash []byte, name string) (sqlc.User, error)
-	ChangePassword(ctx context.Context, userId int32, pwHash []byte) error
-	UpdateLastLoginTime(ctx context.Context, userId int32) error
-}
-
-type userRepoImpl struct {
+type UserRepo struct {
 	sr SqlRunner
 }
 
-func (r *userRepoImpl) GetUser(ctx context.Context, userId int32) (sqlc.User, error) {
+func (r UserRepo) GetUser(ctx context.Context, userId int32) (sqlc.User, error) {
 	res, err := r.sr.Query(ctx, func(q *sqlc.Queries) (interface{}, error) {
 		return q.GetUser(ctx, userId)
 	})
@@ -29,7 +21,7 @@ func (r *userRepoImpl) GetUser(ctx context.Context, userId int32) (sqlc.User, er
 	return res.(sqlc.User), err
 }
 
-func (r *userRepoImpl) GetUserFromEmail(ctx context.Context, email string) (sqlc.User, error) {
+func (r UserRepo) GetUserFromEmail(ctx context.Context, email string) (sqlc.User, error) {
 	res, err := r.sr.Query(ctx, func(q *sqlc.Queries) (interface{}, error) {
 		return q.GetUserFromEmail(ctx, email)
 	})
@@ -40,7 +32,7 @@ func (r *userRepoImpl) GetUserFromEmail(ctx context.Context, email string) (sqlc
 	return res.(sqlc.User), err
 }
 
-func (r *userRepoImpl) CreateUser(ctx context.Context, email string, pwHash []byte, name string) (sqlc.User, error) {
+func (r UserRepo) CreateUser(ctx context.Context, email string, pwHash []byte, name string) (sqlc.User, error) {
 	res, err := r.sr.Query(ctx, func(q *sqlc.Queries) (interface{}, error) {
 		params := sqlc.CreateUserParams{
 			Email:  email,
@@ -56,7 +48,7 @@ func (r *userRepoImpl) CreateUser(ctx context.Context, email string, pwHash []by
 	return res.(sqlc.User), err
 }
 
-func (r *userRepoImpl) ChangePassword(ctx context.Context, userId int32, pwHash []byte) error {
+func (r UserRepo) ChangePassword(ctx context.Context, userId int32, pwHash []byte) error {
 	return r.sr.Execute(ctx, func(q *sqlc.Queries) error {
 		params := sqlc.ChangePasswordParams{
 			UserID: userId,
@@ -66,7 +58,7 @@ func (r *userRepoImpl) ChangePassword(ctx context.Context, userId int32, pwHash 
 	})
 }
 
-func (r *userRepoImpl) UpdateLastLoginTime(ctx context.Context, userId int32) error {
+func (r UserRepo) UpdateLastLoginTime(ctx context.Context, userId int32) error {
 	return r.sr.Execute(ctx, func(q *sqlc.Queries) error {
 		return q.UpdateLastLoginTime(ctx, userId)
 	})

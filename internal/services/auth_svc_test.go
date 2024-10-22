@@ -6,9 +6,8 @@ import (
 	"testing"
 	"time"
 
-	core_mocks "github.com/frozenkro/dirtie-srv/internal/core/mocks"
-	db_mocks "github.com/frozenkro/dirtie-srv/internal/db/mocks"
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
+	"github.com/frozenkro/dirtie-srv/internal/services/mocks"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
@@ -17,26 +16,29 @@ import (
 )
 
 var (
-	mockUserRepo    *db_mocks.MockUserRepo
-	mockSessionRepo *db_mocks.MockSessionRepo
-	mockPwResetRepo *db_mocks.MockPwResetRepo
-	mockEmailSender *core_mocks.MockEmailSender
-	mockHtmlParser  *core_mocks.MockHtmlParser
-	authSvc         *AuthSvc
+  userReader  mocks.MockUserReader
+  userWriter  mocks.MockUserWriter
+	sessionRepo mocks.MockSessionRepo
+	pwResetRepo mocks.MockPwResetRepo
+	emailSender mocks.MockEmailSender
+	htmlParser  mocks.MockHtmlParser
+	authSvc     *AuthSvc
 )
 
 func setup() {
-	mockUserRepo = new(db_mocks.MockUserRepo)
-	mockSessionRepo = new(db_mocks.MockSessionRepo)
-	mockPwResetRepo = new(db_mocks.MockPwResetRepo)
-	mockEmailSender = new(core_mocks.MockEmailSender)
-	mockHtmlParser = new(core_mocks.MockHtmlParser)
+  userReader  = *new(mocks.MockUserReader)
+  userWriter  = *new(mocks.MockUserWriter)
+	sessionRepo = *new(mocks.MockSessionRepo)
+	pwResetRepo = *new(mocks.MockPwResetRepo)
+	emailSender = *new(mocks.MockEmailSender)
+	htmlParser  = *new(mocks.MockHtmlParser)
 
-	authSvc = NewAuthSvc(mockUserRepo,
-		mockSessionRepo,
-		mockPwResetRepo,
-		mockHtmlParser,
-		mockEmailSender)
+	authSvc = NewAuthSvc(userReader,
+		userWriter,
+    &sessionRepo,
+    &pwResetRepo,
+    emailSender,
+    htmlParser)
 }
 
 func TestCreateUser(t *testing.T) {
@@ -49,8 +51,8 @@ func TestCreateUser(t *testing.T) {
 		password := "password123"
 		name := "Test User"
 
-		mockUserRepo.On("GetUserFromEmail", ctx, email).Return(sqlc.User{}, nil)
-		mockUserRepo.On("CreateUser", ctx, email, mock.AnythingOfType("[]uint8"), name).Return(sqlc.User{UserID: 1, Email: email, Name: name}, nil)
+		userReader.On("GetUserFromEmail", ctx, email).Return(sqlc.User{}, nil)
+		userWriter.On("CreateUser", ctx, email, mock.AnythingOfType("[]uint8"), name).Return(sqlc.User{UserID: 1, Email: email, Name: name}, nil)
 
 		user, err := authSvc.CreateUser(ctx, email, password, name)
 

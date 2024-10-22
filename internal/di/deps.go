@@ -53,7 +53,7 @@ func NewDeps(ctx context.Context) *Deps {
 	htmlUtil := &utils.HtmlUtil{}
 	ctxUtil := &utils.CtxUtil{}
 
-	authSvc := services.NewAuthSvc(userRepo, sessionRepo, pwResetRepo, htmlUtil, emailUtil)
+	authSvc := services.NewAuthSvc(userRepo, userRepo, sessionRepo, pwResetRepo, htmlUtil, emailUtil)
 	deviceSvc := services.NewDeviceSvc(deviceRepo, provStgRepo, ctxUtil)
 	brdCrmSvc := services.NewBrdCrmSvc(influxRepo, influxRepo, deviceSvc)
 

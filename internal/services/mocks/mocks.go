@@ -2,6 +2,8 @@ package mocks
 
 import (
 	"context"
+  "html/template"
+  "net/http"
 	"time"
 
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
@@ -9,7 +11,11 @@ import (
 )
 
 // Mock repositories
-type MockUserRepo struct {
+type MockUserReader struct {
+	mock.Mock
+}
+
+type MockUserWriter struct {
 	mock.Mock
 }
 
@@ -22,27 +28,27 @@ type MockPwResetRepo struct {
 }
 
 // Implement UserRepo interface methods for MockUserRepo
-func (m *MockUserRepo) GetUserFromEmail(ctx context.Context, email string) (sqlc.User, error) {
+func (m *MockUserReader) GetUserFromEmail(ctx context.Context, email string) (sqlc.User, error) {
 	args := m.Called(ctx, email)
 	return args.Get(0).(sqlc.User), args.Error(1)
 }
 
-func (m *MockUserRepo) CreateUser(ctx context.Context, email string, pwHash []byte, name string) (sqlc.User, error) {
+func (m *MockUserWriter) CreateUser(ctx context.Context, email string, pwHash []byte, name string) (sqlc.User, error) {
 	args := m.Called(ctx, email, pwHash, name)
 	return args.Get(0).(sqlc.User), args.Error(1)
 }
 
-func (m *MockUserRepo) UpdateLastLoginTime(ctx context.Context, userID int32) error {
+func (m *MockUserWriter) UpdateLastLoginTime(ctx context.Context, userID int32) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
 
-func (m *MockUserRepo) GetUser(ctx context.Context, userID int32) (sqlc.User, error) {
+func (m *MockUserReader) GetUser(ctx context.Context, userID int32) (sqlc.User, error) {
 	args := m.Called(ctx, userID)
 	return args.Get(0).(sqlc.User), args.Error(1)
 }
 
-func (m *MockUserRepo) ChangePassword(ctx context.Context, userId int32, pwHash []byte) error {
+func (m *MockUserWriter) ChangePassword(ctx context.Context, userId int32, pwHash []byte) error {
 	args := m.Called(ctx, userId, pwHash)
 	return args.Error(0)
 }
@@ -82,5 +88,32 @@ func (m *MockPwResetRepo) DeletePwResetToken(ctx context.Context, token string) 
 }
 func (m *MockPwResetRepo) DeleteUserPwResetTokens(ctx context.Context, userId int32) error {
 	args := m.Called(ctx, userId)
+	return args.Error(0)
+}
+type MockHtmlParser struct {
+	mock.Mock
+}
+
+type MockEmailSender struct {
+	mock.Mock
+}
+
+func (m *MockHtmlParser) ReadFile(ctx context.Context, path string) (*template.Template, error) {
+	args := m.Called(ctx, path)
+	return args.Get(0).(*template.Template), args.Error(1)
+}
+
+func (m *MockHtmlParser) ReplaceVars(ctx context.Context, vars any, tmp *template.Template) ([]byte, error) {
+	args := m.Called(ctx, vars, tmp)
+	return args.Get(0).([]byte), args.Error(1)
+}
+
+func (m *MockHtmlParser) ReplaceAndWrite(ctx context.Context, data any, tmp *template.Template, w http.ResponseWriter) error {
+	args := m.Called(ctx, data, tmp, w)
+	return args.Error(0)
+}
+
+func (m *MockEmailSender) SendEmail(ctx context.Context, emailAddress string, subject string, body string) error {
+	args := m.Called(ctx, emailAddress, subject, body)
 	return args.Error(0)
 }

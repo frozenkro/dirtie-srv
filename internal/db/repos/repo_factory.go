@@ -35,7 +35,7 @@ func NewRepoFactory(ctx context.Context) (RepoFactory, error) {
 }
 
 func (f *repoFactoryImpl) NewUserRepo() UserRepo {
-	return &userRepoImpl{sr: f.tm}
+	return UserRepo{sr: f.tm}
 }
 
 func (f *repoFactoryImpl) NewDeviceRepo() DeviceRepo {

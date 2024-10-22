@@ -8,10 +8,6 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-type EmailSender interface {
-	SendEmail(ctx context.Context, emailAddress string, subject string, body string) error
-}
-
 type EmailUtil struct{}
 
 func (u *EmailUtil) SendEmail(ctx context.Context, emailAddress string, subject string, body string) error {

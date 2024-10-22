@@ -4,22 +4,45 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+  "html/template"
+  "net/http"
 	"time"
 
 	"github.com/frozenkro/dirtie-srv/internal/core"
-	"github.com/frozenkro/dirtie-srv/internal/core/utils"
 	"github.com/frozenkro/dirtie-srv/internal/db/repos"
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
+type EmailSender interface {
+	SendEmail(ctx context.Context, emailAddress string, subject string, body string) error
+}
+
+type HtmlParser interface {
+	ReadFile(ctx context.Context, path string) (*template.Template, error)
+	ReplaceVars(ctx context.Context, data any, tmp *template.Template) ([]byte, error)
+	ReplaceAndWrite(ctx context.Context, data any, tmp *template.Template, w http.ResponseWriter) error
+}
+
+
+type UserReader interface {
+	GetUser(ctx context.Context, userId int32) (sqlc.User, error)
+	GetUserFromEmail(ctx context.Context, email string) (sqlc.User, error)
+}
+type UserWriter interface {
+	CreateUser(ctx context.Context, email string, pwHash []byte, name string) (sqlc.User, error)
+	ChangePassword(ctx context.Context, userId int32, pwHash []byte) error
+	UpdateLastLoginTime(ctx context.Context, userId int32) error
+}
+
 type AuthSvc struct {
-	userRepo    repos.UserRepo
+  userReader  UserReader
+  userWriter  UserWriter
 	sessionRepo repos.SessionRepo
 	pwResetRepo repos.PwResetRepo
-	htmlParser  utils.HtmlParser
-	emailSender utils.EmailSender
+	htmlParser  HtmlParser
+	emailSender EmailSender
 }
 
 var (
@@ -30,14 +53,16 @@ var (
 	ErrInvalidPassword = fmt.Errorf("Invalid Password")
 )
 
-func NewAuthSvc(userRepo repos.UserRepo,
+func NewAuthSvc(userReader UserReader,
+  userWriter UserWriter,
 	sessionRepo repos.SessionRepo,
 	pwResetRepo repos.PwResetRepo,
-	htmlParser utils.HtmlParser,
-	emailSender utils.EmailSender) *AuthSvc {
+	htmlParser HtmlParser,
+	emailSender EmailSender) *AuthSvc {
 
 	return &AuthSvc{
-		userRepo:    userRepo,
+    userReader:  userReader,
+    userWriter:  userWriter,
 		sessionRepo: sessionRepo,
 		pwResetRepo: pwResetRepo,
 		htmlParser:  htmlParser,
@@ -52,7 +77,7 @@ type ReplaceVars struct {
 
 func (s *AuthSvc) CreateUser(ctx context.Context, email string, password string, name string) (*sqlc.User, error) {
 
-	existingUser, err := s.userRepo.GetUserFromEmail(ctx, email)
+	existingUser, err := s.userReader.GetUserFromEmail(ctx, email)
 	if err != nil {
 		return nil, fmt.Errorf("Error CreateUser -> GetUserFromEmail: \n%w\n", err)
 	}
@@ -65,7 +90,7 @@ func (s *AuthSvc) CreateUser(ctx context.Context, email string, password string,
 		return nil, fmt.Errorf("Error CreateUser -> GenerateFromPassword: \n%w\n", err)
 	}
 
-	newUser, err := s.userRepo.CreateUser(ctx, email, pwHash, name)
+	newUser, err := s.userWriter.CreateUser(ctx, email, pwHash, name)
 	if err != nil {
 		return nil, fmt.Errorf("Error CreateUser -> CreateUser: \n%w\n", err)
 	}
@@ -73,7 +98,7 @@ func (s *AuthSvc) CreateUser(ctx context.Context, email string, password string,
 }
 
 func (s *AuthSvc) Login(ctx context.Context, email string, password string) (string, error) {
-	user, err := s.userRepo.GetUserFromEmail(ctx, email)
+	user, err := s.userReader.GetUserFromEmail(ctx, email)
 	if err != nil {
 		return "", fmt.Errorf("Error Login -> GetUserFromEmail: \n%w\n", err)
 	}
@@ -83,7 +108,7 @@ func (s *AuthSvc) Login(ctx context.Context, email string, password string) (str
 		return "", fmt.Errorf("Error Login -> CompareHashAndPassword: \n%w\n", ErrInvalidPassword)
 	}
 
-	err = s.userRepo.UpdateLastLoginTime(ctx, user.UserID)
+	err = s.userWriter.UpdateLastLoginTime(ctx, user.UserID)
 	if err != nil {
 		return "", fmt.Errorf("Error Login -> UpdateLastLoginTime: \n%w\n", err)
 	}
@@ -119,7 +144,7 @@ func (s *AuthSvc) ValidateToken(ctx context.Context, token string) (*sqlc.User, 
 		return nil, fmt.Errorf("ValidateToken - Validating token %v: \n%w\n", token, ErrExpiredToken)
 	}
 
-	user, err := s.userRepo.GetUser(ctx, session.UserID)
+	user, err := s.userReader.GetUser(ctx, session.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("Error ValidateToken -> GetUser: \n%w\n", err)
 	}
@@ -142,7 +167,7 @@ func (s *AuthSvc) Logout(ctx context.Context, token string) error {
 
 func (s *AuthSvc) ForgotPw(ctx context.Context, email string) error {
 	// Find user
-	user, err := s.userRepo.GetUserFromEmail(ctx, email)
+	user, err := s.userReader.GetUserFromEmail(ctx, email)
 	if err != nil {
 		return err
 	}
@@ -225,7 +250,7 @@ func (s *AuthSvc) ChangePw(ctx context.Context, encToken string, newPw string) e
 		return fmt.Errorf("Error ChangePw -> GenerateFromPassword: \n%w\n", err)
 	}
 
-	s.userRepo.ChangePassword(ctx, userId, pwHash)
+	s.userWriter.ChangePassword(ctx, userId, pwHash)
 	err = s.pwResetRepo.DeleteUserPwResetTokens(ctx, userId)
 	if err != nil {
 		return fmt.Errorf("Error ChangePw - An error occurred after successful password change: \n%w\n", err)
