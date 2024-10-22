@@ -28,14 +28,14 @@ var (
 )
 
 func setup() {
-  userReader  = *new(mocks.MockUserReader)
-  userWriter  = *new(mocks.MockUserWriter)
-	sessionReader = *new(mocks.MockSessionReader)
-	sessionWriter = *new(mocks.MockSessionWriter)
-	pwResetReader = *new(mocks.MockPwResetReader)
-	pwResetWriter = *new(mocks.MockPwResetWriter)
-	htmlParser  = *new(mocks.MockHtmlParser)
-	emailSender = *new(mocks.MockEmailSender)
+  userReader  = mocks.MockUserReader{ Mock: new(mock.Mock) }
+  userWriter  = mocks.MockUserWriter{ Mock: new(mock.Mock) }
+	sessionReader = mocks.MockSessionReader{ Mock: new(mock.Mock) }
+	sessionWriter = mocks.MockSessionWriter{ Mock: new(mock.Mock) }
+	pwResetReader = mocks.MockPwResetReader{ Mock: new(mock.Mock) }
+	pwResetWriter = mocks.MockPwResetWriter{ Mock: new(mock.Mock) }
+	htmlParser  = mocks.MockHtmlParser{ Mock: new(mock.Mock) }
+	emailSender = mocks.MockEmailSender{ Mock: new(mock.Mock) }
 
 	authSvc = NewAuthSvc(userReader,
 		userWriter,
