@@ -29,8 +29,8 @@ services:
     ports:
       - "8087:8086"
     volumes:
-      - influxdb-data:/var/lib/influxdb2
-      - influxdb-config:/etc/influxdb2
+      - influxdb_test-data:/var/lib/influxdb2
+      - influxdb_test-config:/etc/influxdb2
     env_file:
       .env
     environment:
@@ -40,6 +40,7 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=${INFLUX_ORG}
       - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUX_DEFAULT_BUCKET}
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_TOKEN}
+      - DOCKER_INFLUXDB_CLI_CONFIG_NAME=int-test-config
 
   hub:
     build: .
@@ -93,7 +94,9 @@ volumes:
   mosquitto:
     external: true
   influxdb-data:
+  influxdb_test-data:
   influxdb-config:
+  influxdb_test-config:
   grafana:
   postgres-data:
     driver: local

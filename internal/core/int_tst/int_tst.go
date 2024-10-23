@@ -2,14 +2,15 @@ package int_tst
 
 import (
 	"context"
+  _ "embed"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/frozenkro/dirtie-srv/internal/core"
+	drt_db "github.com/frozenkro/dirtie-srv/internal/db"
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -88,10 +89,7 @@ func connectDb(ctx context.Context, t *testing.T) *pgx.Conn {
 }
 
 func setupDb(db *pgx.Conn) {
-	schema, err := os.ReadFile(core.ProjectRootDir() + "/internal/db/sqlc/schema.sql")
-	if err != nil {
-		panic(fmt.Errorf("Error reading schema.sql: %w", err))
-	}
+  schema := drt_db.SchemaSql
 
 	if _, err := db.Exec(context.Background(), string(schema)); err != nil {
 		panic(fmt.Errorf("Error executing schema.sql: %w", err))
