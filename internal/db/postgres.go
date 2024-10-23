@@ -9,7 +9,7 @@ import (
 )
 
 func PgConnect(ctx context.Context) (*pgxpool.Pool, error) {
-  dbName := getDbName(ctx)
+	dbName := getDbName(ctx)
 
 	connstr := fmt.Sprintf("postgres://%v:%v@%v/%v",
 		core.POSTGRES_USER,
@@ -27,18 +27,18 @@ func PgConnect(ctx context.Context) (*pgxpool.Pool, error) {
 }
 
 func getDbName(ctx context.Context) string {
-  if !core.IS_TEST {
-    return core.POSTGRES_DB
-  }
+	if !core.IS_TEST {
+		return core.POSTGRES_DB
+	}
 
-  dbNameAny := ctx.Value("testdb")
-  if dbNameAny == nil || dbNameAny == "" {
-    panic("DB Name must be set on context while app runs in test mode")
-  }
-  dbName, succ := dbNameAny.(string)
-  if !succ {
-    panic("DB Name on context not castable to string")
-  }
+	dbNameAny := ctx.Value("testdb")
+	if dbNameAny == nil || dbNameAny == "" {
+		panic("DB Name must be set on context while app runs in test mode")
+	}
+	dbName, succ := dbNameAny.(string)
+	if !succ {
+		panic("DB Name on context not castable to string")
+	}
 
-  return dbName
+	return dbName
 }

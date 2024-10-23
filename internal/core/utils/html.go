@@ -5,6 +5,8 @@ import (
 	"context"
 	"html/template"
 	"net/http"
+
+	"github.com/frozenkro/dirtie-srv/assets"
 )
 
 type HtmlParser interface {
@@ -16,7 +18,7 @@ type HtmlParser interface {
 type HtmlUtil struct{}
 
 func (u *HtmlUtil) ReadFile(ctx context.Context, path string) (*template.Template, error) {
-	return template.ParseFiles(path)
+	return template.ParseFS(assets.AssetDir, path)
 }
 
 func (u *HtmlUtil) ReplaceVars(ctx context.Context, data any, tmp *template.Template) ([]byte, error) {

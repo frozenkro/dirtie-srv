@@ -1,7 +1,7 @@
 package di
 
 import (
-  "context"
+	"context"
 
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
 	"github.com/frozenkro/dirtie-srv/internal/db"
