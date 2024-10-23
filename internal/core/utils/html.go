@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"net/http"
 
-  "github.com/frozenkro/dirtie-srv/assets"
+	"github.com/frozenkro/dirtie-srv/assets"
 )
 
 type HtmlParser interface {

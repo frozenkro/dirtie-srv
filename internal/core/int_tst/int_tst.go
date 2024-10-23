@@ -2,7 +2,7 @@ package int_tst
 
 import (
 	"context"
-  _ "embed"
+	_ "embed"
 	"errors"
 	"fmt"
 	"strings"
@@ -26,29 +26,29 @@ var (
 )
 
 func TestContext(t *testing.T) context.Context {
-  return context.WithValue(
-    context.Background(), 
-    "testdb", 
-    strings.ToLower(t.Name()),
-  )
+	return context.WithValue(
+		context.Background(),
+		"testdb",
+		strings.ToLower(t.Name()),
+	)
 }
 
 func SetupTests(ctx context.Context, t *testing.T) *pgx.Conn {
 	if !initSetup {
 		core.SetupTestEnv()
 		initSetup = true
-	} 
+	}
 
-  db := connectDb(ctx, t)
-  setupDb(db)
+	db := connectDb(ctx, t)
+	setupDb(db)
 	return db
 }
 
 func connectDb(ctx context.Context, t *testing.T) *pgx.Conn {
-  dbName := ctx.Value("testdb")
-  if dbName == nil || dbName == "" {
-    t.Fatalf("Test '%v' does not pass context with testdb value to connectDb. Use TestContext(t)", t.Name())
-  }
+	dbName := ctx.Value("testdb")
+	if dbName == nil || dbName == "" {
+		t.Fatalf("Test '%v' does not pass context with testdb value to connectDb. Use TestContext(t)", t.Name())
+	}
 
 	mconnstr := fmt.Sprintf("postgres://%v:%v@%v/%v",
 		core.POSTGRES_USER,
@@ -59,37 +59,37 @@ func connectDb(ctx context.Context, t *testing.T) *pgx.Conn {
 	if err != nil {
 		t.Fatalf("Error connecting to test maintenance db: %v", err)
 	}
-  defer maintDb.Close(ctx)
+	defer maintDb.Close(ctx)
 
-  exists := 0
-  err = maintDb.QueryRow(ctx, "SELECT 1 FROM pg_database WHERE datname = $1", dbName).Scan(&exists)
-  if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-    t.Fatalf("Error occurred when checking for test db '%v' existence: %v", dbName, err)
-  }
-  if exists == 1 {
-    t.Fatalf("Cannot create db for test '%v'. Test name is not unique", dbName)
-  }
+	exists := 0
+	err = maintDb.QueryRow(ctx, "SELECT 1 FROM pg_database WHERE datname = $1", dbName).Scan(&exists)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		t.Fatalf("Error occurred when checking for test db '%v' existence: %v", dbName, err)
+	}
+	if exists == 1 {
+		t.Fatalf("Cannot create db for test '%v'. Test name is not unique", dbName)
+	}
 
-  _, err = maintDb.Exec(ctx, fmt.Sprintf("CREATE DATABASE %v", dbName))
-  if err != nil {
-    t.Fatalf("Error occurred when creating test db '%v': %v", dbName, err)
-  }
+	_, err = maintDb.Exec(ctx, fmt.Sprintf("CREATE DATABASE %v", dbName))
+	if err != nil {
+		t.Fatalf("Error occurred when creating test db '%v': %v", dbName, err)
+	}
 
-  connstr := fmt.Sprintf("postgres://%v:%v@%v/%v",
-    core.POSTGRES_USER,
-    core.POSTGRES_PASSWORD,
-    core.POSTGRES_SERVER,
-    dbName)
-  db, err := pgx.Connect(ctx, connstr)
-  if err != nil {
-    t.Fatalf("Error connecting to freshly created test db '%v': %v", dbName, err)
-  }
+	connstr := fmt.Sprintf("postgres://%v:%v@%v/%v",
+		core.POSTGRES_USER,
+		core.POSTGRES_PASSWORD,
+		core.POSTGRES_SERVER,
+		dbName)
+	db, err := pgx.Connect(ctx, connstr)
+	if err != nil {
+		t.Fatalf("Error connecting to freshly created test db '%v': %v", dbName, err)
+	}
 
 	return db
 }
 
 func setupDb(db *pgx.Conn) {
-  schema := drt_db.SchemaSql
+	schema := drt_db.SchemaSql
 
 	if _, err := db.Exec(context.Background(), string(schema)); err != nil {
 		panic(fmt.Errorf("Error executing schema.sql: %w", err))
