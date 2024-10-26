@@ -6,18 +6,18 @@ import (
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
 	"github.com/frozenkro/dirtie-srv/internal/db"
 	"github.com/frozenkro/dirtie-srv/internal/db/repos"
-	brdcrm_topic "github.com/frozenkro/dirtie-srv/internal/hub/topics/brdcrmtopic"
-	prv_topic "github.com/frozenkro/dirtie-srv/internal/hub/topics/prvtopic"
+	"github.com/frozenkro/dirtie-srv/internal/hub/topics/brdcrmtopic"
+	"github.com/frozenkro/dirtie-srv/internal/hub/topics/prvtopic"
 	"github.com/frozenkro/dirtie-srv/internal/services"
 )
 
 type Deps struct {
-	BrdCrmTopic    *brdcrm_topic.BrdCrmTopic
-	ProvisionTopic *prv_topic.ProvisionTopic
+	BrdCrmTopic    *brdcrmtopic.BrdCrmTopic
+	ProvisionTopic *prvtopic.ProvisionTopic
 
 	AuthSvc   services.AuthSvc
 	BrdCrmSvc services.BrdCrmSvc
-	CapSvc    services.CapSvc
+	DataSvc   services.DataSvc
 	DeviceSvc services.DeviceSvc
 
 	DeviceRepo  repos.DeviceRepo
@@ -70,19 +70,19 @@ func NewDeps(ctx context.Context) *Deps {
 		influxRepo,
 		influxRepo,
 		deviceSvc)
-	capSvc := services.NewCapSvc(
+	dataSvc := services.NewDataSvc(
 		influxRepo,
 		deviceSvc)
 
-	brdCrmTopic := brdcrm_topic.NewBrdCrmTopic(brdCrmSvc)
-	prvTopic := prv_topic.NewProvisionTopic(*deviceSvc)
+	brdCrmTopic := brdcrmtopic.NewBrdCrmTopic(brdCrmSvc)
+	prvTopic := prvtopic.NewProvisionTopic(*deviceSvc)
 
 	return &Deps{
 		BrdCrmTopic:    brdCrmTopic,
 		ProvisionTopic: prvTopic,
 		AuthSvc:        *authSvc,
 		BrdCrmSvc:      brdCrmSvc,
-		CapSvc:         capSvc,
+		DataSvc:        dataSvc,
 		DeviceSvc:      *deviceSvc,
 		DeviceRepo:     deviceRepo,
 		ProvStgRepo:    provStgRepo,

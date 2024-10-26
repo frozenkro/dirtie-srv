@@ -1,4 +1,4 @@
-package prv_topic
+package prvtopic
 
 import (
 	"context"
