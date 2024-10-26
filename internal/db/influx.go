@@ -62,9 +62,9 @@ func (r InfluxRepo) GetLatestValue(
 		return DeviceDataPoint{}, fmt.Errorf("Error GetLatestValue -> Query: %w", err)
 	}
 
-  if !qRes.Next() {
+	if !qRes.Next() {
 		return DeviceDataPoint{}, nil
-  }
+	}
 
 	return newDeviceDataPoint(qRes)
 }
@@ -93,40 +93,40 @@ func (r InfluxRepo) GetValuesRange(
 }
 
 func llToSlice(r *api.QueryTableResult) ([]DeviceDataPoint, error) {
-  var d []DeviceDataPoint
+	var d []DeviceDataPoint
 	for r.Next() {
-    p, err := newDeviceDataPoint(r)
-    if err != nil {
-      return nil, fmt.Errorf(
-        "Error GetValuesRange -> newDeviceDataPoint: %w", 
-        err)
-    }
-    d = append(d, p)
+		p, err := newDeviceDataPoint(r)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"Error GetValuesRange -> newDeviceDataPoint: %w",
+				err)
+		}
+		d = append(d, p)
 	}
-  return d, nil
+	return d, nil
 }
 
 func newDeviceDataPoint(r *api.QueryTableResult) (DeviceDataPoint, error) {
-  val := r.Record().Value()
-  if r == nil || r.Record() == nil {
-    return DeviceDataPoint{}, fmt.Errorf(
-      `Error in newDeviceDataPoint - no influx result`,
-    )
-  }
-  valInt, succ := val.(int64)
-  if !succ {
-    return DeviceDataPoint{}, fmt.Errorf(
-      `Error in newDeviceDataPoint - failed to cast influx result. 
-      deviceId: '%v', measurementKey: '%v'`, 
-      r.Record().ValueByKey("device"), 
-      r.Record().Measurement(),
-    )  
-  }
-  return DeviceDataPoint{
-    Value: valInt,
-    Time:  r.Record().Time(),
-    Key:   r.Record().Field(),
-  }, nil
+	val := r.Record().Value()
+	if r == nil || r.Record() == nil {
+		return DeviceDataPoint{}, fmt.Errorf(
+			`Error in newDeviceDataPoint - no influx result`,
+		)
+	}
+	valInt, succ := val.(int64)
+	if !succ {
+		return DeviceDataPoint{}, fmt.Errorf(
+			`Error in newDeviceDataPoint - failed to cast influx result. 
+      deviceId: '%v', measurementKey: '%v'`,
+			r.Record().ValueByKey("device"),
+			r.Record().Measurement(),
+		)
+	}
+	return DeviceDataPoint{
+		Value: valInt,
+		Time:  r.Record().Time(),
+		Key:   r.Record().Field(),
+	}, nil
 }
 
 func (r *InfluxRepo) Disconnect() {

@@ -49,4 +49,5 @@ func TestBrdCrmInvokeTopic(t *testing.T) {
     }
     assert.Equal(t, data.Temperature, tempData.Value)
   })
+
 }
