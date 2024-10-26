@@ -1,18 +1,29 @@
 package handlers
 
 import (
+  "context"
 	"encoding/json"
 	"errors"
 	"fmt"
+  "html/template"
 	"net/http"
 
 	"github.com/frozenkro/dirtie-srv/internal/api/middleware"
 	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
-	"github.com/frozenkro/dirtie-srv/internal/db/repos"
+	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
 	"github.com/frozenkro/dirtie-srv/internal/di"
 	"github.com/frozenkro/dirtie-srv/internal/services"
 )
+
+type HtmlParser interface {
+	ReadFile(ctx context.Context, path string) (*template.Template, error)
+	ReplaceAndWrite(ctx context.Context, data any, tmp *template.Template, w http.ResponseWriter) error
+}
+
+type UserGetter interface {
+  GetUser(context.Context, int32) (sqlc.User, error)
+}
 
 type CreateUserArgs struct {
 	Email    string `json:"email"`
@@ -51,7 +62,7 @@ func SetupAuthHandlers(deps *di.Deps) {
 		middleware.LogTransaction(),
 	))
 	http.Handle("/pw/change", middleware.Adapt(
-		changePwHandler(deps.AuthSvc, deps.HtmlParser, deps.UserRepo),
+		changePwHandler(deps.AuthSvc, deps.HtmlUtil, deps.UserRepo),
 		middleware.LogTransaction(),
 	))
 }
@@ -146,7 +157,7 @@ func resetPwHandler(authSvc services.AuthSvc) http.Handler {
 	})
 }
 
-func changePwHandler(authSvc services.AuthSvc, htmlUtil utils.HtmlParser, userRepo repos.UserRepo) http.Handler {
+func changePwHandler(authSvc services.AuthSvc, htmlParser HtmlParser, userGetter UserGetter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// TODO this does too much, refactor to service
 		ctx := r.Context()
@@ -168,7 +179,7 @@ func changePwHandler(authSvc services.AuthSvc, htmlUtil utils.HtmlParser, userRe
 			return
 		}
 
-		user, err := userRepo.GetUser(ctx, userId)
+		user, err := userGetter.GetUser(ctx, userId)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -202,13 +213,13 @@ func changePwHandler(authSvc services.AuthSvc, htmlUtil utils.HtmlParser, userRe
 		}
 
 		// serve page with data
-		tmpl, err := htmlUtil.ReadFile(ctx, fmt.Sprintf("%vchangePasswordPage.html", core.ASSETS_DIR))
+		tmpl, err := htmlParser.ReadFile(ctx, fmt.Sprintf("%vchangePasswordPage.html", core.ASSETS_DIR))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		err = htmlUtil.ReplaceAndWrite(ctx, changePwData, tmpl, w)
+		err = htmlParser.ReplaceAndWrite(ctx, changePwData, tmpl, w)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

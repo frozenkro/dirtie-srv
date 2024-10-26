@@ -7,19 +7,11 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type DeviceRepo interface {
-	CreateDevice(ctx context.Context, userId int32, displayName string) (sqlc.Device, error)
-	GetDeviceByMacAddress(ctx context.Context, macAddr string) (sqlc.Device, error)
-	GetDevicesByUser(ctx context.Context, userId int32) ([]sqlc.Device, error)
-	RenameDevice(ctx context.Context, deviceId int32, displayName string) error
-	UpdateDeviceMacAddress(ctx context.Context, deviceId int32, macAddr string) error
-}
-
-type deviceRepoImpl struct {
+type DeviceRepo struct {
 	sr SqlRunner
 }
 
-func (r *deviceRepoImpl) CreateDevice(ctx context.Context, userId int32, displayName string) (sqlc.Device, error) {
+func (r DeviceRepo) CreateDevice(ctx context.Context, userId int32, displayName string) (sqlc.Device, error) {
 	res, err := r.sr.Query(ctx, func(q *sqlc.Queries) (interface{}, error) {
 		params := sqlc.CreateDeviceParams{
 			UserID:      userId,
@@ -33,7 +25,7 @@ func (r *deviceRepoImpl) CreateDevice(ctx context.Context, userId int32, display
 	return res.(sqlc.Device), err
 }
 
-func (r *deviceRepoImpl) GetDeviceByMacAddress(ctx context.Context, macAddr string) (sqlc.Device, error) {
+func (r DeviceRepo) GetDeviceByMacAddress(ctx context.Context, macAddr string) (sqlc.Device, error) {
 	res, err := r.sr.Query(ctx, func(q *sqlc.Queries) (interface{}, error) {
 		return q.GetDeviceByMacAddress(ctx, pgtype.Text{String: macAddr, Valid: true})
 	})
@@ -44,7 +36,7 @@ func (r *deviceRepoImpl) GetDeviceByMacAddress(ctx context.Context, macAddr stri
 	return res.(sqlc.Device), err
 }
 
-func (r *deviceRepoImpl) GetDevicesByUser(ctx context.Context, userId int32) ([]sqlc.Device, error) {
+func (r DeviceRepo) GetDevicesByUser(ctx context.Context, userId int32) ([]sqlc.Device, error) {
 	res, err := r.sr.Query(ctx, func(q *sqlc.Queries) (interface{}, error) {
 		return q.GetDevicesByUser(ctx, userId)
 	})
@@ -55,7 +47,7 @@ func (r *deviceRepoImpl) GetDevicesByUser(ctx context.Context, userId int32) ([]
 	return res.([]sqlc.Device), err
 }
 
-func (r *deviceRepoImpl) RenameDevice(ctx context.Context, deviceId int32, displayName string) error {
+func (r DeviceRepo) RenameDevice(ctx context.Context, deviceId int32, displayName string) error {
 	return r.sr.Execute(ctx, func(q *sqlc.Queries) error {
 		params := sqlc.RenameDeviceParams{
 			DeviceID:    deviceId,
@@ -65,7 +57,7 @@ func (r *deviceRepoImpl) RenameDevice(ctx context.Context, deviceId int32, displ
 	})
 }
 
-func (r *deviceRepoImpl) UpdateDeviceMacAddress(ctx context.Context, deviceId int32, macAddr string) error {
+func (r DeviceRepo) UpdateDeviceMacAddress(ctx context.Context, deviceId int32, macAddr string) error {
 	return r.sr.Execute(ctx, func(q *sqlc.Queries) error {
 		params := sqlc.UpdateDeviceMacAddressParams{
 			DeviceID: deviceId,

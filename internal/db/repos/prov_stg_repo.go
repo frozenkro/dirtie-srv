@@ -7,17 +7,11 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type ProvisionStagingRepo interface {
-	CreateProvisionStaging(ctx context.Context, deviceId int32, contract string) error
-	GetProvisionStagingByContract(ctx context.Context, contract string) (sqlc.ProvisionStaging, error)
-	DeleteProvisionStaging(ctx context.Context, deviceId int32) error
-}
-
-type provisionStagingRepoImpl struct {
+type ProvisionStagingRepo struct {
 	sr SqlRunner
 }
 
-func (r *provisionStagingRepoImpl) CreateProvisionStaging(ctx context.Context, deviceId int32, contract string) error {
+func (r ProvisionStagingRepo) CreateProvisionStaging(ctx context.Context, deviceId int32, contract string) error {
 	return r.sr.Execute(ctx, func(q *sqlc.Queries) error {
 		params := sqlc.CreateProvisionStagingParams{
 			DeviceID: deviceId,
@@ -27,7 +21,7 @@ func (r *provisionStagingRepoImpl) CreateProvisionStaging(ctx context.Context, d
 	})
 }
 
-func (r *provisionStagingRepoImpl) GetProvisionStagingByContract(ctx context.Context, contract string) (sqlc.ProvisionStaging, error) {
+func (r ProvisionStagingRepo) GetProvisionStagingByContract(ctx context.Context, contract string) (sqlc.ProvisionStaging, error) {
 	res, err := r.sr.Query(ctx, func(q *sqlc.Queries) (interface{}, error) {
 		return q.GetProvisionStagingByContract(ctx, pgtype.Text{String: contract})
 	})
@@ -38,7 +32,7 @@ func (r *provisionStagingRepoImpl) GetProvisionStagingByContract(ctx context.Con
 	return res.(sqlc.ProvisionStaging), err
 }
 
-func (r *provisionStagingRepoImpl) DeleteProvisionStaging(ctx context.Context, deviceId int32) error {
+func (r ProvisionStagingRepo) DeleteProvisionStaging(ctx context.Context, deviceId int32) error {
 	return r.sr.Execute(ctx, func(q *sqlc.Queries) error {
 		return q.DeleteProvisionStaging(ctx, deviceId)
 	})
