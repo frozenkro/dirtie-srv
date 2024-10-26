@@ -7,10 +7,6 @@ import (
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
 )
 
-type UserGetter interface {
-	GetUser(ctx context.Context) (sqlc.User, error)
-}
-
 type CtxUtil struct{}
 
 var ErrNoUserCtx = fmt.Errorf("Error: No user object in context")

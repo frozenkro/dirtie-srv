@@ -6,9 +6,8 @@ import (
 	"testing"
 	"time"
 
-	core_mocks "github.com/frozenkro/dirtie-srv/internal/core/mocks"
-	db_mocks "github.com/frozenkro/dirtie-srv/internal/db/mocks"
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
+	"github.com/frozenkro/dirtie-srv/internal/services/mocks"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
@@ -17,26 +16,35 @@ import (
 )
 
 var (
-	mockUserRepo    *db_mocks.MockUserRepo
-	mockSessionRepo *db_mocks.MockSessionRepo
-	mockPwResetRepo *db_mocks.MockPwResetRepo
-	mockEmailSender *core_mocks.MockEmailSender
-	mockHtmlParser  *core_mocks.MockHtmlParser
-	authSvc         *AuthSvc
+  userReader  mocks.MockUserReader
+  userWriter  mocks.MockUserWriter
+	sessionReader mocks.MockSessionReader
+	sessionWriter mocks.MockSessionWriter
+	pwResetReader mocks.MockPwResetReader
+	pwResetWriter mocks.MockPwResetWriter
+	emailSender mocks.MockEmailSender
+	htmlParser  mocks.MockHtmlParser
+	authSvc     *AuthSvc
 )
 
 func setup() {
-	mockUserRepo = new(db_mocks.MockUserRepo)
-	mockSessionRepo = new(db_mocks.MockSessionRepo)
-	mockPwResetRepo = new(db_mocks.MockPwResetRepo)
-	mockEmailSender = new(core_mocks.MockEmailSender)
-	mockHtmlParser = new(core_mocks.MockHtmlParser)
+  userReader  = mocks.MockUserReader{ Mock: new(mock.Mock) }
+  userWriter  = mocks.MockUserWriter{ Mock: new(mock.Mock) }
+	sessionReader = mocks.MockSessionReader{ Mock: new(mock.Mock) }
+	sessionWriter = mocks.MockSessionWriter{ Mock: new(mock.Mock) }
+	pwResetReader = mocks.MockPwResetReader{ Mock: new(mock.Mock) }
+	pwResetWriter = mocks.MockPwResetWriter{ Mock: new(mock.Mock) }
+	htmlParser  = mocks.MockHtmlParser{ Mock: new(mock.Mock) }
+	emailSender = mocks.MockEmailSender{ Mock: new(mock.Mock) }
 
-	authSvc = NewAuthSvc(mockUserRepo,
-		mockSessionRepo,
-		mockPwResetRepo,
-		mockHtmlParser,
-		mockEmailSender)
+	authSvc = NewAuthSvc(userReader,
+		userWriter,
+    sessionReader,
+    sessionWriter,
+    pwResetReader,
+    pwResetWriter,
+    htmlParser,
+    emailSender)
 }
 
 func TestCreateUser(t *testing.T) {
@@ -49,8 +57,8 @@ func TestCreateUser(t *testing.T) {
 		password := "password123"
 		name := "Test User"
 
-		mockUserRepo.On("GetUserFromEmail", ctx, email).Return(sqlc.User{}, nil)
-		mockUserRepo.On("CreateUser", ctx, email, mock.AnythingOfType("[]uint8"), name).Return(sqlc.User{UserID: 1, Email: email, Name: name}, nil)
+		userReader.On("GetUserFromEmail", ctx, email).Return(sqlc.User{}, nil)
+		userWriter.On("CreateUser", ctx, email, mock.AnythingOfType("[]uint8"), name).Return(sqlc.User{UserID: 1, Email: email, Name: name}, nil)
 
 		user, err := authSvc.CreateUser(ctx, email, password, name)
 
@@ -58,7 +66,8 @@ func TestCreateUser(t *testing.T) {
 		assert.NotNil(t, user)
 		assert.Equal(t, email, user.Email)
 		assert.Equal(t, name, user.Name)
-		mockUserRepo.AssertExpectations(t)
+    userReader.AssertExpectations(t)
+		userWriter.AssertExpectations(t)
 	})
 
 	t.Run("UserAlreadyExists", func(t *testing.T) {
@@ -66,14 +75,14 @@ func TestCreateUser(t *testing.T) {
 		password := "password123"
 		name := "Existing User"
 
-		mockUserRepo.On("GetUserFromEmail", ctx, email).Return(sqlc.User{UserID: 1}, nil)
+		userReader.On("GetUserFromEmail", ctx, email).Return(sqlc.User{UserID: 1}, nil)
 
 		user, err := authSvc.CreateUser(ctx, email, password, name)
 
 		assert.Error(t, err)
 		assert.Nil(t, user)
 		assert.True(t, errors.Is(err, ErrUserExists))
-		mockUserRepo.AssertExpectations(t)
+		userReader.AssertExpectations(t)
 	})
 }
 
@@ -86,17 +95,18 @@ func TestLogin(t *testing.T) {
 		password := "password123"
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), 10)
 
-		mockUserRepo.On("GetUserFromEmail", ctx, email).Return(sqlc.User{UserID: 1, Email: email, PwHash: hashedPassword}, nil)
-		mockUserRepo.On("UpdateLastLoginTime", ctx, int32(1)).Return(nil)
-		mockSessionRepo.On("CreateSession", ctx, int32(1), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).Return(nil)
-		mockSessionRepo.On("DeleteUserSessions", ctx, int32(1)).Return(nil)
+		userReader.On("GetUserFromEmail", ctx, email).Return(sqlc.User{UserID: 1, Email: email, PwHash: hashedPassword}, nil)
+		userWriter.On("UpdateLastLoginTime", ctx, int32(1)).Return(nil)
+		sessionWriter.On("CreateSession", ctx, int32(1), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).Return(nil)
+		sessionWriter.On("DeleteUserSessions", ctx, int32(1)).Return(nil)
 
 		token, err := authSvc.Login(ctx, email, password)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, token)
-		mockUserRepo.AssertExpectations(t)
-		mockSessionRepo.AssertExpectations(t)
+		userReader.AssertExpectations(t)
+		userWriter.AssertExpectations(t)
+		sessionWriter.AssertExpectations(t)
 	})
 
 	t.Run("InvalidCredentials", func(t *testing.T) {
@@ -104,13 +114,13 @@ func TestLogin(t *testing.T) {
 		password := "wrongpassword"
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("correctpassword"), 10)
 
-		mockUserRepo.On("GetUserFromEmail", ctx, email).Return(sqlc.User{UserID: 1, Email: email, PwHash: hashedPassword}, nil)
+		userReader.On("GetUserFromEmail", ctx, email).Return(sqlc.User{UserID: 1, Email: email, PwHash: hashedPassword}, nil)
 
 		token, err := authSvc.Login(ctx, email, password)
 
 		assert.Error(t, err)
 		assert.Empty(t, token)
-		mockUserRepo.AssertExpectations(t)
+		userReader.AssertExpectations(t)
 	})
 }
 
@@ -123,16 +133,16 @@ func TestValidateToken(t *testing.T) {
 		userID := int32(1)
 		expiresAt := time.Now().Add(time.Hour)
 
-		mockSessionRepo.On("GetSession", ctx, token).Return(sqlc.Session{UserID: userID, ExpiresAt: pgtype.Timestamptz{Time: expiresAt}}, nil)
-		mockUserRepo.On("GetUser", ctx, userID).Return(sqlc.User{UserID: userID, Email: "test@example.com"}, nil)
+		sessionReader.On("GetSession", ctx, token).Return(sqlc.Session{UserID: userID, ExpiresAt: pgtype.Timestamptz{Time: expiresAt}}, nil)
+		userReader.On("GetUser", ctx, userID).Return(sqlc.User{UserID: userID, Email: "test@example.com"}, nil)
 
 		user, err := authSvc.ValidateToken(ctx, token)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
 		assert.Equal(t, userID, user.UserID)
-		mockSessionRepo.AssertExpectations(t)
-		mockUserRepo.AssertExpectations(t)
+		sessionReader.AssertExpectations(t)
+		userReader.AssertExpectations(t)
 	})
 
 	t.Run("ExpiredToken", func(t *testing.T) {
@@ -140,26 +150,26 @@ func TestValidateToken(t *testing.T) {
 		userID := int32(1)
 		expiresAt := time.Now().Add(-time.Hour) // Expired
 
-		mockSessionRepo.On("GetSession", ctx, token).Return(sqlc.Session{UserID: userID, ExpiresAt: pgtype.Timestamptz{Time: expiresAt}}, nil)
+		sessionReader.On("GetSession", ctx, token).Return(sqlc.Session{UserID: userID, ExpiresAt: pgtype.Timestamptz{Time: expiresAt}}, nil)
 
 		user, err := authSvc.ValidateToken(ctx, token)
 
 		assert.Error(t, err)
 		assert.Nil(t, user)
 		assert.True(t, errors.Is(err, ErrExpiredToken))
-		mockSessionRepo.AssertExpectations(t)
+		sessionReader.AssertExpectations(t)
 	})
 
 	t.Run("InvalidToken", func(t *testing.T) {
 		token := "invalidtoken"
 
-		mockSessionRepo.On("GetSession", ctx, token).Return(sqlc.Session{}, nil)
+		sessionReader.On("GetSession", ctx, token).Return(sqlc.Session{}, nil)
 
 		user, err := authSvc.ValidateToken(ctx, token)
 
 		assert.Error(t, err)
 		assert.Nil(t, user)
 		assert.True(t, errors.Is(err, ErrInvalidToken))
-		mockSessionRepo.AssertExpectations(t)
+		sessionReader.AssertExpectations(t)
 	})
 }
