@@ -17,6 +17,7 @@ type Deps struct {
 
 	AuthSvc   services.AuthSvc
 	BrdCrmSvc services.BrdCrmSvc
+  CapSvc    services.CapSvc
 	DeviceSvc services.DeviceSvc
 
 	DeviceRepo  repos.DeviceRepo
@@ -25,8 +26,7 @@ type Deps struct {
 	SessionRepo repos.SessionRepo
 	UserRepo    repos.UserRepo
 
-	DeviceDataRecorder  db.DeviceDataRecorder
-	DeviceDataRetriever db.DeviceDataRetriever
+  InfluxRepo db.InfluxRepo
 
 	EmailSender utils.EmailSender
 	HtmlParser  utils.HtmlParser
@@ -56,6 +56,7 @@ func NewDeps(ctx context.Context) *Deps {
 	authSvc := services.NewAuthSvc(userRepo, sessionRepo, pwResetRepo, htmlUtil, emailUtil)
 	deviceSvc := services.NewDeviceSvc(deviceRepo, provStgRepo, ctxUtil)
 	brdCrmSvc := services.NewBrdCrmSvc(influxRepo, influxRepo, deviceSvc)
+  capSvc := services.NewCapSvc(influxRepo, deviceSvc)
 
 	brdCrmTopic := brdcrm_topic.NewBrdCrmTopic(brdCrmSvc)
 	prvTopic := prv_topic.NewProvisionTopic(*deviceSvc)
@@ -65,6 +66,7 @@ func NewDeps(ctx context.Context) *Deps {
 		ProvisionTopic:      prvTopic,
 		AuthSvc:             *authSvc,
 		BrdCrmSvc:           brdCrmSvc,
+    CapSvc:              capSvc,
 		DeviceSvc:           *deviceSvc,
 		DeviceRepo:          deviceRepo,
 		ProvStgRepo:         provStgRepo,
@@ -73,7 +75,6 @@ func NewDeps(ctx context.Context) *Deps {
 		UserRepo:            userRepo,
 		EmailSender:         emailUtil,
 		HtmlParser:          htmlUtil,
-		DeviceDataRecorder:  influxRepo,
-		DeviceDataRetriever: influxRepo,
+		InfluxRepo:          influxRepo,
 	}
 }
