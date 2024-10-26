@@ -17,7 +17,7 @@ type Deps struct {
 
 	AuthSvc   services.AuthSvc
 	BrdCrmSvc services.BrdCrmSvc
-  CapSvc    services.CapSvc
+	CapSvc    services.CapSvc
 	DeviceSvc services.DeviceSvc
 
 	DeviceRepo  repos.DeviceRepo
@@ -70,6 +70,9 @@ func NewDeps(ctx context.Context) *Deps {
     influxRepo, 
     influxRepo, 
     deviceSvc)
+  capSvc := services.NewCapSvc(
+    influxRepo,
+    deviceSvc)
 
 	brdCrmTopic := brdcrm_topic.NewBrdCrmTopic(brdCrmSvc)
 	prvTopic := prv_topic.NewProvisionTopic(*deviceSvc)
@@ -89,6 +92,6 @@ func NewDeps(ctx context.Context) *Deps {
 		EmailUtil:           *emailUtil,
 		HtmlUtil:            *htmlUtil,
     CtxUtil:             *ctxUtil,
-		InfluxRepo: influxRepo,
+		InfluxRepo:          influxRepo,
 	}
 }
