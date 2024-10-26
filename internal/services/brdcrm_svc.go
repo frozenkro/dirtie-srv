@@ -12,7 +12,7 @@ import (
 
 type DeviceGetter interface {
 	GetDeviceByMacAddress(ctx context.Context, macAddr string) (sqlc.Device, error)
-} 
+}
 
 type DeviceDataRecorder interface {
 	Record(ctx context.Context, deviceId int, measurementKey string, value int64) error
@@ -24,9 +24,9 @@ type DeviceDataRetriever interface {
 }
 
 type BrdCrmSvc struct {
-	DataRecorder    DeviceDataRecorder
-	DataRetriever   DeviceDataRetriever
-	DeviceGetter    DeviceGetter
+	DataRecorder  DeviceDataRecorder
+	DataRetriever DeviceDataRetriever
+	DeviceGetter  DeviceGetter
 }
 type BreadCrumb struct {
 	MacAddr     string

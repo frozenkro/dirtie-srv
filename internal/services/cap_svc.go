@@ -6,8 +6,8 @@ import (
 )
 
 type CapSvc struct {
-	DataRetriever   DeviceDataRetriever
-	DeviceGetter DeviceGetter
+	DataRetriever DeviceDataRetriever
+	DeviceGetter  DeviceGetter
 }
 
 func NewCapSvc(dataRet DeviceDataRetriever, devGet DeviceGetter) CapSvc {

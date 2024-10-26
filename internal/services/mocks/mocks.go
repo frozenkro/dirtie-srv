@@ -2,8 +2,8 @@ package mocks
 
 import (
 	"context"
-  "html/template"
-  "net/http"
+	"html/template"
+	"net/http"
 	"time"
 
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
@@ -20,7 +20,7 @@ type MockUserWriter struct {
 }
 
 type MockSessionReader struct {
-  *mock.Mock
+	*mock.Mock
 }
 type MockSessionWriter struct {
 	*mock.Mock
@@ -40,7 +40,6 @@ type MockHtmlParser struct {
 type MockEmailSender struct {
 	*mock.Mock
 }
-
 
 // Implement UserRepo interface methods for MockUserRepo
 func (m MockUserReader) GetUserFromEmail(ctx context.Context, email string) (sqlc.User, error) {

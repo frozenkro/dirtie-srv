@@ -30,7 +30,7 @@ type Deps struct {
 
 	EmailUtil utils.EmailUtil
 	HtmlUtil  utils.HtmlUtil
-  CtxUtil   utils.CtxUtil
+	CtxUtil   utils.CtxUtil
 }
 
 // context is just used for passing test-specific config around
@@ -53,45 +53,45 @@ func NewDeps(ctx context.Context) *Deps {
 	htmlUtil := &utils.HtmlUtil{}
 	ctxUtil := &utils.CtxUtil{}
 
-	authSvc := services.NewAuthSvc(userRepo, 
-    userRepo, 
-    sessionRepo, 
-    sessionRepo, 
-    pwResetRepo, 
-    pwResetRepo, 
-    htmlUtil, 
-    emailUtil)
+	authSvc := services.NewAuthSvc(userRepo,
+		userRepo,
+		sessionRepo,
+		sessionRepo,
+		pwResetRepo,
+		pwResetRepo,
+		htmlUtil,
+		emailUtil)
 	deviceSvc := services.NewDeviceSvc(deviceRepo,
-    deviceRepo, 
-    provStgRepo, 
-    provStgRepo, 
-    ctxUtil)
+		deviceRepo,
+		provStgRepo,
+		provStgRepo,
+		ctxUtil)
 	brdCrmSvc := services.NewBrdCrmSvc(
-    influxRepo, 
-    influxRepo, 
-    deviceSvc)
-  capSvc := services.NewCapSvc(
-    influxRepo,
-    deviceSvc)
+		influxRepo,
+		influxRepo,
+		deviceSvc)
+	capSvc := services.NewCapSvc(
+		influxRepo,
+		deviceSvc)
 
 	brdCrmTopic := brdcrm_topic.NewBrdCrmTopic(brdCrmSvc)
 	prvTopic := prv_topic.NewProvisionTopic(*deviceSvc)
 
 	return &Deps{
-		BrdCrmTopic:         brdCrmTopic,
-		ProvisionTopic:      prvTopic,
-		AuthSvc:             *authSvc,
-		BrdCrmSvc:           brdCrmSvc,
-    CapSvc:              capSvc,
-		DeviceSvc:           *deviceSvc,
-		DeviceRepo:          deviceRepo,
-		ProvStgRepo:         provStgRepo,
-		PwResetRepo:         pwResetRepo,
-		SessionRepo:         sessionRepo,
-		UserRepo:            userRepo,
-		EmailUtil:           *emailUtil,
-		HtmlUtil:            *htmlUtil,
-    CtxUtil:             *ctxUtil,
-		InfluxRepo:          influxRepo,
+		BrdCrmTopic:    brdCrmTopic,
+		ProvisionTopic: prvTopic,
+		AuthSvc:        *authSvc,
+		BrdCrmSvc:      brdCrmSvc,
+		CapSvc:         capSvc,
+		DeviceSvc:      *deviceSvc,
+		DeviceRepo:     deviceRepo,
+		ProvStgRepo:    provStgRepo,
+		PwResetRepo:    pwResetRepo,
+		SessionRepo:    sessionRepo,
+		UserRepo:       userRepo,
+		EmailUtil:      *emailUtil,
+		HtmlUtil:       *htmlUtil,
+		CtxUtil:        *ctxUtil,
+		InfluxRepo:     influxRepo,
 	}
 }
