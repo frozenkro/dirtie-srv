@@ -62,12 +62,12 @@ func (s BrdCrmSvc) RecordBrdCrm(ctx context.Context, brdCrm BreadCrumb) error {
 func (s BrdCrmSvc) GetLatestBrdCrm(ctx context.Context, deviceId int) (*BreadCrumb, error) {
 	cap, err := s.DataRetriever.GetLatestValue(ctx, deviceId, core.Capacitance)
 	if err != nil {
-		return nil, fmt.Errorf("Error GetLatestBrdCrm -> GetLatestValue (capacitance): \n%w\n")
+		return nil, fmt.Errorf("Error GetLatestBrdCrm -> GetLatestValue (capacitance): \n%w\n", err)
 	}
 
 	temp, err := s.DataRetriever.GetLatestValue(ctx, deviceId, core.Temperature)
 	if err != nil {
-		return nil, fmt.Errorf("Error GetLatestBrdCrm -> GetLatestValue (temperature): \n%w\n")
+		return nil, fmt.Errorf("Error GetLatestBrdCrm -> GetLatestValue (temperature): \n%w\n", err)
 	}
 
 	return &BreadCrumb{

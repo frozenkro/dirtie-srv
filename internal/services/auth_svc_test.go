@@ -27,7 +27,7 @@ var (
 	authSvc       *AuthSvc
 )
 
-func setup() {
+func setupAuthSvcTests() {
 	userReader = mocks.MockUserReader{Mock: new(mock.Mock)}
 	userWriter = mocks.MockUserWriter{Mock: new(mock.Mock)}
 	sessionReader = mocks.MockSessionReader{Mock: new(mock.Mock)}
@@ -50,7 +50,7 @@ func setup() {
 func TestCreateUser(t *testing.T) {
 	ctx := context.Background()
 
-	setup()
+	setupAuthSvcTests()
 
 	t.Run("Success", func(t *testing.T) {
 		email := "test@example.com"
@@ -88,7 +88,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	ctx := context.Background()
-	setup()
+	setupAuthSvcTests()
 
 	t.Run("Success", func(t *testing.T) {
 		email := "test@example.com"
@@ -126,7 +126,7 @@ func TestLogin(t *testing.T) {
 
 func TestValidateToken(t *testing.T) {
 	ctx := context.Background()
-	setup()
+	setupAuthSvcTests()
 
 	t.Run("ValidToken", func(t *testing.T) {
 		token := uuid.New().String()
