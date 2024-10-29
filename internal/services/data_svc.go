@@ -22,7 +22,7 @@ func (s DataSvc) CapacitanceData(ctx context.Context, deviceId int, startTime st
 }
 
 func (s DataSvc) TemperatureData(ctx context.Context, deviceId int, startTime string) ([]db.DeviceDataPoint, error) {
-	return s.dataSince(ctx, deviceId, startTime, core.Capacitance)
+	return s.dataSince(ctx, deviceId, startTime, core.Temperature)
 }
 
 func (s DataSvc) dataSince(ctx context.Context, deviceId int, startTime string, measurement string) ([]db.DeviceDataPoint, error) {
@@ -36,7 +36,7 @@ func (s DataSvc) dataSince(ctx context.Context, deviceId int, startTime string, 
   endTimeT := time.Now()
 	data, err := s.DataRetriever.GetValuesRange(ctx,
 		deviceId,
-		core.Capacitance,
+		measurement,
 		startTimeT,
 		endTimeT)
 	if err != nil {
