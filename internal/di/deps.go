@@ -71,8 +71,7 @@ func NewDeps(ctx context.Context) *Deps {
 		influxRepo,
 		deviceSvc)
 	dataSvc := services.NewDataSvc(
-		influxRepo,
-		deviceSvc)
+		influxRepo)
 
 	brdCrmTopic := brdcrmtopic.NewBrdCrmTopic(brdCrmSvc)
 	prvTopic := prvtopic.NewProvisionTopic(*deviceSvc)

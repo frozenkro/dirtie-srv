@@ -149,7 +149,7 @@ func (m MockDeviceDataRetriever) GetValuesRange(
   measurementKey string, 
   start time.Time, 
   end time.Time) ([]db.DeviceDataPoint, error) {
-  args := m.Called(ctx, deviceId, measurementKey)
+  args := m.Called(ctx, deviceId, measurementKey, start, end)
   return args.Get(0).([]db.DeviceDataPoint), args.Error(1)
 }
 

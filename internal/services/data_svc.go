@@ -11,11 +11,10 @@ import (
 
 type DataSvc struct {
 	DataRetriever DeviceDataRetriever
-	DeviceGetter  DeviceGetter
 }
 
-func NewDataSvc(dataRet DeviceDataRetriever, devGet DeviceGetter) DataSvc {
-	return DataSvc{DataRetriever: dataRet, DeviceGetter: devGet}
+func NewDataSvc(dataRet DeviceDataRetriever) DataSvc {
+	return DataSvc{DataRetriever: dataRet}
 }
 
 func (s DataSvc) CapacitanceData(ctx context.Context, deviceId int, startTime string) ([]db.DeviceDataPoint, error) {
@@ -34,11 +33,12 @@ func (s DataSvc) dataSince(ctx context.Context, deviceId int, startTime string, 
 			measurement, startTime, err)
 	}
 
+  endTimeT := time.Now()
 	data, err := s.DataRetriever.GetValuesRange(ctx,
 		deviceId,
 		core.Capacitance,
 		startTimeT,
-		time.Now())
+		endTimeT)
 	if err != nil {
 		return nil, fmt.Errorf("Error in DataSvc -> GetValuesRange: \n%w\n", err)
 	}

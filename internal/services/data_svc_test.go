@@ -20,17 +20,19 @@ var(
 func setupDataSvcTests() {
   dataRet = mocks.MockDeviceDataRetriever{ Mock: new(mock.Mock) }
   deviceGet = mocks.MockDeviceGetter{ Mock: new(mock.Mock) }
-  dataSvc = NewDataSvc(dataRet, deviceGet)
+  dataSvc = NewDataSvc(dataRet)
 }
 
-func testCapacitanceData(t *testing.T) {
+func TestCapacitanceData(t *testing.T) {
   ctx := context.Background()
   setupDataSvcTests()
 
   t.Run("Success", func(t *testing.T) {
     deviceId := 123
     now := time.Now()
-    startTime := now.Add(-3 * time.Hour).Format(time.RFC3339)
+    startTimeT := now.Add(-3 * time.Hour)
+    startTime := startTimeT.Format(time.RFC3339)
+   
 
     expData := []db.DeviceDataPoint {
       db.DeviceDataPoint {
@@ -47,7 +49,12 @@ func testCapacitanceData(t *testing.T) {
     
     dataRet.On("GetValuesRange", 
       ctx, deviceId, core.Capacitance, 
-      startTime, mock.AnythingOfType("time.Time"),
+      mock.MatchedBy(func(tm time.Time) bool { 
+        return tm.Format(time.RFC3339) == startTime 
+      }), 
+      mock.MatchedBy(func(tm time.Time) bool {
+        return tm.Unix() > startTimeT.Unix()
+      }),
       ).Return(expData, nil)
 
     result, err := dataSvc.CapacitanceData(ctx,
