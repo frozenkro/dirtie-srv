@@ -33,7 +33,7 @@ func (s DataSvc) dataSince(ctx context.Context, deviceId int, startTime string, 
 			measurement, startTime, err)
 	}
 
-  endTimeT := time.Now()
+	endTimeT := time.Now()
 	data, err := s.DataRetriever.GetValuesRange(ctx,
 		deviceId,
 		measurement,

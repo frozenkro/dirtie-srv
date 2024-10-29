@@ -43,15 +43,15 @@ type MockEmailSender struct {
 }
 
 type MockDeviceDataRetriever struct {
-  *mock.Mock
+	*mock.Mock
 }
 
 type MockDeviceDataRecorder struct {
-  *mock.Mock
+	*mock.Mock
 }
 
 type MockDeviceGetter struct {
-  *mock.Mock
+	*mock.Mock
 }
 
 // Implement UserRepo interface methods for MockUserRepo
@@ -139,30 +139,30 @@ func (m MockEmailSender) SendEmail(ctx context.Context, emailAddress string, sub
 }
 
 func (m MockDeviceDataRetriever) GetLatestValue(ctx context.Context, deviceId int, measurementKey string) (db.DeviceDataPoint, error) {
-  args := m.Called(ctx, deviceId, measurementKey)
-  return args.Get(0).(db.DeviceDataPoint), args.Error(1)
+	args := m.Called(ctx, deviceId, measurementKey)
+	return args.Get(0).(db.DeviceDataPoint), args.Error(1)
 }
 
 func (m MockDeviceDataRetriever) GetValuesRange(
-  ctx context.Context, 
-  deviceId int, 
-  measurementKey string, 
-  start time.Time, 
-  end time.Time) ([]db.DeviceDataPoint, error) {
-  args := m.Called(ctx, deviceId, measurementKey, start, end)
-  return args.Get(0).([]db.DeviceDataPoint), args.Error(1)
+	ctx context.Context,
+	deviceId int,
+	measurementKey string,
+	start time.Time,
+	end time.Time) ([]db.DeviceDataPoint, error) {
+	args := m.Called(ctx, deviceId, measurementKey, start, end)
+	return args.Get(0).([]db.DeviceDataPoint), args.Error(1)
 }
 
 func (m MockDeviceDataRecorder) Record(
-  ctx context.Context, 
-  deviceId int,
-  measurementKey string, 
-  value int64) error {
-  args := m.Called(ctx, deviceId, measurementKey, value)
-  return args.Error(0)
+	ctx context.Context,
+	deviceId int,
+	measurementKey string,
+	value int64) error {
+	args := m.Called(ctx, deviceId, measurementKey, value)
+	return args.Error(0)
 }
 
 func (m MockDeviceGetter) GetDeviceByMacAddress(ctx context.Context, macAddr string) (sqlc.Device, error) {
-  args := m.Called(ctx, macAddr)
-  return args.Get(0).(sqlc.Device), args.Error(1)
+	args := m.Called(ctx, macAddr)
+	return args.Get(0).(sqlc.Device), args.Error(1)
 }
