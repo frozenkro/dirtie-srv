@@ -49,20 +49,20 @@ func TestBrdCrmInvokeTopic(t *testing.T) {
 		}
 		assert.Equal(t, data.Temperature, tempData.Value)
 	})
-  t.Run("UnrecognizedDevice", func(t *testing.T) {
-    data := services.BreadCrumb{
-      MacAddr: "d035n0t3x1st",
-      Capacitance: 420,
-      Temperature: 69,
-    }
-    dBytes, err := json.Marshal(data)
-    if err != nil {
+	t.Run("UnrecognizedDevice", func(t *testing.T) {
+		data := services.BreadCrumb{
+			MacAddr:     "d035n0t3x1st",
+			Capacitance: 420,
+			Temperature: 69,
+		}
+		dBytes, err := json.Marshal(data)
+		if err != nil {
 			t.Errorf("Error encoding test breadcrumb: %v", err)
-    }
+		}
 
-    err = sut.InvokeTopic(ctx, dBytes)
+		err = sut.InvokeTopic(ctx, dBytes)
 
-    assert.NotNil(t, err)
-    assert.ErrorIs(t, err, services.ErrNoDevice)
-  })
+		assert.NotNil(t, err)
+		assert.ErrorIs(t, err, services.ErrNoDevice)
+	})
 }

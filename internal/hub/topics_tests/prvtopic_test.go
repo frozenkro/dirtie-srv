@@ -13,47 +13,47 @@ import (
 )
 
 func TestPrvInvokeTopic(t *testing.T) {
-  ctx := int_tst.TestContext(t)
-  db := int_tst.SetupTests(ctx, t)
-  defer db.Close(ctx)
+	ctx := int_tst.TestContext(t)
+	db := int_tst.SetupTests(ctx, t)
+	defer db.Close(ctx)
 
-  deps := di.NewDeps(ctx)
-  sut := prvtopic.NewProvisionTopic(deps.DeviceSvc)
+	deps := di.NewDeps(ctx)
+	sut := prvtopic.NewProvisionTopic(deps.DeviceSvc)
 
-  t.Run("Success", func(t *testing.T) {
-    data := services.DevicePrvPayload {
-      MacAddr: "s@mp13m4c@ddr355",
-      Contract: int_tst.TestProvStg.Contract.String,
-    }
-    dBytes, err := json.Marshal(data)
-    if err != nil {
-      t.Fatalf("Error marshaling struct for provision completion test: \n%v\n", err)
-    }
+	t.Run("Success", func(t *testing.T) {
+		data := services.DevicePrvPayload{
+			MacAddr:  "s@mp13m4c@ddr355",
+			Contract: int_tst.TestProvStg.Contract.String,
+		}
+		dBytes, err := json.Marshal(data)
+		if err != nil {
+			t.Fatalf("Error marshaling struct for provision completion test: \n%v\n", err)
+		}
 
-    err = sut.InvokeTopic(ctx, dBytes)
-    assert.Nil(t, err)
+		err = sut.InvokeTopic(ctx, dBytes)
+		assert.Nil(t, err)
 
-    row, err := db.Query(
-      ctx,
-      "SELECT device_id, user_id, mac_addr, display_name FROM devices WHERE mac_addr = $1",
-      data.MacAddr)
+		row, err := db.Query(
+			ctx,
+			"SELECT device_id, user_id, mac_addr, display_name FROM devices WHERE mac_addr = $1",
+			data.MacAddr)
 
-    assert.Nil(t, err, err)
+		assert.Nil(t, err, err)
 
-    if !row.Next() {
-      t.Fatalf("New device not saved to devices table")
-    }
+		if !row.Next() {
+			t.Fatalf("New device not saved to devices table")
+		}
 
-    device := sqlc.Device{}
-    err = row.Scan(&device.DeviceID, &device.UserID, &device.MacAddr, &device.DisplayName)
-    if err != nil {
-      t.Fatalf("Error converting inserted row to device struct: \n%v\n", err)
-    }
+		device := sqlc.Device{}
+		err = row.Scan(&device.DeviceID, &device.UserID, &device.MacAddr, &device.DisplayName)
+		if err != nil {
+			t.Fatalf("Error converting inserted row to device struct: \n%v\n", err)
+		}
 
-    assert.False(t, row.Next())
-    assert.Equal(t, data.MacAddr, device.MacAddr.String)
-  })
+		assert.False(t, row.Next())
+		assert.Equal(t, data.MacAddr, device.MacAddr.String)
+	})
 
-  //t.Run("OverwriteDeviceMacAddr", func(t *testing.T) {
-  //}
+	//t.Run("OverwriteDeviceMacAddr", func(t *testing.T) {
+	//}
 }
