@@ -9,7 +9,7 @@ import (
 	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/frozenkro/dirtie-srv/internal/core/int_tst"
 	"github.com/frozenkro/dirtie-srv/internal/di"
-	brdcrm_topic "github.com/frozenkro/dirtie-srv/internal/hub/topics/brdcrmtopic"
+	"github.com/frozenkro/dirtie-srv/internal/hub/topics/brdcrmtopic"
 	"github.com/frozenkro/dirtie-srv/internal/services"
 	"github.com/stretchr/testify/assert"
 )
@@ -20,7 +20,7 @@ func TestBrdCrmInvokeTopic(t *testing.T) {
 	defer db.Close(ctx)
 
 	deps := di.NewDeps(ctx)
-	sut := brdcrm_topic.NewBrdCrmTopic(deps.BrdCrmSvc)
+	sut := brdcrmtopic.NewBrdCrmTopic(deps.BrdCrmSvc)
 
 	t.Run("Success", func(t *testing.T) {
 		data := services.BreadCrumb{
@@ -49,4 +49,20 @@ func TestBrdCrmInvokeTopic(t *testing.T) {
 		}
 		assert.Equal(t, data.Temperature, tempData.Value)
 	})
+  t.Run("UnrecognizedDevice", func(t *testing.T) {
+    data := services.BreadCrumb{
+      MacAddr: "d035n0t3x1st",
+      Capacitance: 420,
+      Temperature: 69,
+    }
+    dBytes, err := json.Marshal(data)
+    if err != nil {
+			t.Errorf("Error encoding test breadcrumb: %v", err)
+    }
+
+    err = sut.InvokeTopic(ctx, dBytes)
+
+    assert.NotNil(t, err)
+    assert.ErrorIs(t, err, services.ErrNoDevice)
+  })
 }

@@ -15,7 +15,7 @@ func (r DeviceRepo) CreateDevice(ctx context.Context, userId int32, displayName 
 	res, err := r.sr.Query(ctx, func(q *sqlc.Queries) (interface{}, error) {
 		params := sqlc.CreateDeviceParams{
 			UserID:      userId,
-			DisplayName: pgtype.Text{String: displayName},
+			DisplayName: pgtype.Text{String: displayName, Valid: true},
 		}
 		return q.CreateDevice(ctx, params)
 	})
@@ -51,7 +51,7 @@ func (r DeviceRepo) RenameDevice(ctx context.Context, deviceId int32, displayNam
 	return r.sr.Execute(ctx, func(q *sqlc.Queries) error {
 		params := sqlc.RenameDeviceParams{
 			DeviceID:    deviceId,
-			DisplayName: pgtype.Text{String: displayName},
+			DisplayName: pgtype.Text{String: displayName, Valid: true},
 		}
 		return q.RenameDevice(ctx, params)
 	})
@@ -61,7 +61,7 @@ func (r DeviceRepo) UpdateDeviceMacAddress(ctx context.Context, deviceId int32, 
 	return r.sr.Execute(ctx, func(q *sqlc.Queries) error {
 		params := sqlc.UpdateDeviceMacAddressParams{
 			DeviceID: deviceId,
-			MacAddr:  pgtype.Text{String: macAddr},
+			MacAddr:  pgtype.Text{String: macAddr, Valid: true},
 		}
 		return q.UpdateDeviceMacAddress(ctx, params)
 	})

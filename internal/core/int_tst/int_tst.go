@@ -18,11 +18,12 @@ import (
 
 var (
 	initSetup        bool = false
-	TestUser         sqlc.User
-	TestSession      sqlc.Session
-	TestPwResetToken sqlc.PwResetToken
-	TestDevice       sqlc.Device
-	TestProvStg      sqlc.ProvisionStaging
+	TestUser          sqlc.User
+	TestSession       sqlc.Session
+	TestPwResetToken  sqlc.PwResetToken
+	TestDevice        sqlc.Device
+  TestProvStgDevice sqlc.Device
+	TestProvStg       sqlc.ProvisionStaging
 )
 
 func TestContext(t *testing.T) context.Context {
@@ -145,9 +146,21 @@ func setupData(db *pgx.Conn) {
 		panic(fmt.Errorf("Error creating test device record: %w", err))
 	}
 
+  TestProvStgDevice.DisplayName = pgtype.Text{
+    String: "testprvstgdevice",
+    Valid:  true,
+  }
+  TestProvStgDevice.UserID = 1
+  prvstgdvcSql := `INSERT INTO devices (user_id, display_name) 
+    VALUES ($1, $2)
+    RETURNING device_id;`
+  err := db.QueryRow(context.Background(), prvstgdvcSql, TestProvStgDevice.UserID, TestProvStgDevice.DisplayName).Scan(&TestProvStg.DeviceID) 
+  if err != nil {
+    panic(fmt.Errorf("Error creating prv stg test device record: %w", err))
+  }
+
 	TestProvStg.Contract.String = "testprvstgcontract"
 	TestProvStg.Contract.Valid = true
-	TestProvStg.DeviceID = 1
 	prvSql := "INSERT INTO provision_staging (device_id, contract) VALUES ($1, $2)"
 	if _, err := db.Exec(context.Background(), prvSql, TestProvStg.DeviceID, TestProvStg.Contract); err != nil {
 		panic(fmt.Errorf("Error creating test provision staging record: %w", err))
