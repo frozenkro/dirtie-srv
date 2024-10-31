@@ -16,41 +16,41 @@ import (
 )
 
 var (
-  userReader  mocks.MockUserReader
-  userWriter  mocks.MockUserWriter
+	userReader    mocks.MockUserReader
+	userWriter    mocks.MockUserWriter
 	sessionReader mocks.MockSessionReader
 	sessionWriter mocks.MockSessionWriter
 	pwResetReader mocks.MockPwResetReader
 	pwResetWriter mocks.MockPwResetWriter
-	emailSender mocks.MockEmailSender
-	htmlParser  mocks.MockHtmlParser
-	authSvc     *AuthSvc
+	emailSender   mocks.MockEmailSender
+	htmlParser    mocks.MockHtmlParser
+	authSvc       *AuthSvc
 )
 
-func setup() {
-  userReader  = mocks.MockUserReader{ Mock: new(mock.Mock) }
-  userWriter  = mocks.MockUserWriter{ Mock: new(mock.Mock) }
-	sessionReader = mocks.MockSessionReader{ Mock: new(mock.Mock) }
-	sessionWriter = mocks.MockSessionWriter{ Mock: new(mock.Mock) }
-	pwResetReader = mocks.MockPwResetReader{ Mock: new(mock.Mock) }
-	pwResetWriter = mocks.MockPwResetWriter{ Mock: new(mock.Mock) }
-	htmlParser  = mocks.MockHtmlParser{ Mock: new(mock.Mock) }
-	emailSender = mocks.MockEmailSender{ Mock: new(mock.Mock) }
+func setupAuthSvcTests() {
+	userReader = mocks.MockUserReader{Mock: new(mock.Mock)}
+	userWriter = mocks.MockUserWriter{Mock: new(mock.Mock)}
+	sessionReader = mocks.MockSessionReader{Mock: new(mock.Mock)}
+	sessionWriter = mocks.MockSessionWriter{Mock: new(mock.Mock)}
+	pwResetReader = mocks.MockPwResetReader{Mock: new(mock.Mock)}
+	pwResetWriter = mocks.MockPwResetWriter{Mock: new(mock.Mock)}
+	htmlParser = mocks.MockHtmlParser{Mock: new(mock.Mock)}
+	emailSender = mocks.MockEmailSender{Mock: new(mock.Mock)}
 
 	authSvc = NewAuthSvc(userReader,
 		userWriter,
-    sessionReader,
-    sessionWriter,
-    pwResetReader,
-    pwResetWriter,
-    htmlParser,
-    emailSender)
+		sessionReader,
+		sessionWriter,
+		pwResetReader,
+		pwResetWriter,
+		htmlParser,
+		emailSender)
 }
 
 func TestCreateUser(t *testing.T) {
 	ctx := context.Background()
 
-	setup()
+	setupAuthSvcTests()
 
 	t.Run("Success", func(t *testing.T) {
 		email := "test@example.com"
@@ -66,7 +66,7 @@ func TestCreateUser(t *testing.T) {
 		assert.NotNil(t, user)
 		assert.Equal(t, email, user.Email)
 		assert.Equal(t, name, user.Name)
-    userReader.AssertExpectations(t)
+		userReader.AssertExpectations(t)
 		userWriter.AssertExpectations(t)
 	})
 
@@ -88,7 +88,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	ctx := context.Background()
-	setup()
+	setupAuthSvcTests()
 
 	t.Run("Success", func(t *testing.T) {
 		email := "test@example.com"
@@ -126,7 +126,7 @@ func TestLogin(t *testing.T) {
 
 func TestValidateToken(t *testing.T) {
 	ctx := context.Background()
-	setup()
+	setupAuthSvcTests()
 
 	t.Run("ValidToken", func(t *testing.T) {
 		token := uuid.New().String()

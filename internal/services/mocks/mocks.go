@@ -2,10 +2,11 @@ package mocks
 
 import (
 	"context"
-  "html/template"
-  "net/http"
+	"html/template"
+	"net/http"
 	"time"
 
+	"github.com/frozenkro/dirtie-srv/internal/db"
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
 	"github.com/stretchr/testify/mock"
 )
@@ -20,7 +21,7 @@ type MockUserWriter struct {
 }
 
 type MockSessionReader struct {
-  *mock.Mock
+	*mock.Mock
 }
 type MockSessionWriter struct {
 	*mock.Mock
@@ -41,6 +42,17 @@ type MockEmailSender struct {
 	*mock.Mock
 }
 
+type MockDeviceDataRetriever struct {
+	*mock.Mock
+}
+
+type MockDeviceDataRecorder struct {
+	*mock.Mock
+}
+
+type MockDeviceGetter struct {
+	*mock.Mock
+}
 
 // Implement UserRepo interface methods for MockUserRepo
 func (m MockUserReader) GetUserFromEmail(ctx context.Context, email string) (sqlc.User, error) {
@@ -124,4 +136,33 @@ func (m MockHtmlParser) ReplaceAndWrite(ctx context.Context, data any, tmp *temp
 func (m MockEmailSender) SendEmail(ctx context.Context, emailAddress string, subject string, body string) error {
 	args := m.Called(ctx, emailAddress, subject, body)
 	return args.Error(0)
+}
+
+func (m MockDeviceDataRetriever) GetLatestValue(ctx context.Context, deviceId int, measurementKey string) (db.DeviceDataPoint, error) {
+	args := m.Called(ctx, deviceId, measurementKey)
+	return args.Get(0).(db.DeviceDataPoint), args.Error(1)
+}
+
+func (m MockDeviceDataRetriever) GetValuesRange(
+	ctx context.Context,
+	deviceId int,
+	measurementKey string,
+	start time.Time,
+	end time.Time) ([]db.DeviceDataPoint, error) {
+	args := m.Called(ctx, deviceId, measurementKey, start, end)
+	return args.Get(0).([]db.DeviceDataPoint), args.Error(1)
+}
+
+func (m MockDeviceDataRecorder) Record(
+	ctx context.Context,
+	deviceId int,
+	measurementKey string,
+	value int64) error {
+	args := m.Called(ctx, deviceId, measurementKey, value)
+	return args.Error(0)
+}
+
+func (m MockDeviceGetter) GetDeviceByMacAddress(ctx context.Context, macAddr string) (sqlc.Device, error) {
+	args := m.Called(ctx, macAddr)
+	return args.Get(0).(sqlc.Device), args.Error(1)
 }

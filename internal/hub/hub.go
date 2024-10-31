@@ -9,8 +9,11 @@ import (
 	core_topics "github.com/frozenkro/dirtie-srv/internal/core/topics"
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
 	"github.com/frozenkro/dirtie-srv/internal/di"
-	"github.com/frozenkro/dirtie-srv/internal/hub/topics"
 )
+
+type TopicInvoker interface {
+	InvokeTopic(ctx context.Context, payload []byte) error
+}
 
 var (
 	totalReconnectAttempts int = 10
@@ -36,7 +39,7 @@ var messagePubHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Me
 	}
 }
 
-func getTopicInvoker(topic string) (topics.TopicInvoker, error) {
+func getTopicInvoker(topic string) (TopicInvoker, error) {
 	switch topic {
 	case core_topics.Breadcrumb:
 		return deps.BrdCrmTopic, nil

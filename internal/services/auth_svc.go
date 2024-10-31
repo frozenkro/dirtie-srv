@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-  "html/template"
-  "net/http"
+	"html/template"
+	"net/http"
 	"time"
 
 	"github.com/frozenkro/dirtie-srv/internal/core"
@@ -23,7 +23,6 @@ type HtmlParser interface {
 	ReplaceVars(ctx context.Context, data any, tmp *template.Template) ([]byte, error)
 	ReplaceAndWrite(ctx context.Context, data any, tmp *template.Template, w http.ResponseWriter) error
 }
-
 
 type UserReader interface {
 	GetUser(ctx context.Context, userId int32) (sqlc.User, error)
@@ -53,14 +52,13 @@ type PwResetWriter interface {
 	DeleteUserPwResetTokens(ctx context.Context, userId int32) error
 }
 
-
 type AuthSvc struct {
-  userReader    UserReader
-  userWriter    UserWriter
-  sessionReader SessionReader
-  sessionWriter SessionWriter
-  pwResetReader PwResetReader
-  pwResetWriter PwResetWriter
+	userReader    UserReader
+	userWriter    UserWriter
+	sessionReader SessionReader
+	sessionWriter SessionWriter
+	pwResetReader PwResetReader
+	pwResetWriter PwResetWriter
 	htmlParser    HtmlParser
 	emailSender   EmailSender
 }
@@ -74,23 +72,23 @@ var (
 )
 
 func NewAuthSvc(userReader UserReader,
-  userWriter UserWriter,
-  sessionReader SessionReader,
-  sessionWriter SessionWriter,
-  pwResetReader PwResetReader, 
-  pwResetWriter PwResetWriter,
+	userWriter UserWriter,
+	sessionReader SessionReader,
+	sessionWriter SessionWriter,
+	pwResetReader PwResetReader,
+	pwResetWriter PwResetWriter,
 	htmlParser HtmlParser,
 	emailSender EmailSender) *AuthSvc {
 
 	return &AuthSvc{
-    userReader:  userReader,
-    userWriter:  userWriter,
-    sessionReader: sessionReader,
-    sessionWriter: sessionWriter,
-    pwResetReader: pwResetReader,
-    pwResetWriter: pwResetWriter,
-		htmlParser:  htmlParser,
-		emailSender: emailSender,
+		userReader:    userReader,
+		userWriter:    userWriter,
+		sessionReader: sessionReader,
+		sessionWriter: sessionWriter,
+		pwResetReader: pwResetReader,
+		pwResetWriter: pwResetWriter,
+		htmlParser:    htmlParser,
+		emailSender:   emailSender,
 	}
 }
 

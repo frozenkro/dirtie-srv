@@ -1,11 +1,11 @@
 package handlers
 
 import (
-  "context"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-  "html/template"
+	"html/template"
 	"net/http"
 
 	"github.com/frozenkro/dirtie-srv/internal/api/middleware"
@@ -22,7 +22,7 @@ type HtmlParser interface {
 }
 
 type UserGetter interface {
-  GetUser(context.Context, int32) (sqlc.User, error)
+	GetUser(context.Context, int32) (sqlc.User, error)
 }
 
 type CreateUserArgs struct {

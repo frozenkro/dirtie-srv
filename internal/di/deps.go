@@ -6,17 +6,18 @@ import (
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
 	"github.com/frozenkro/dirtie-srv/internal/db"
 	"github.com/frozenkro/dirtie-srv/internal/db/repos"
-	brdcrm_topic "github.com/frozenkro/dirtie-srv/internal/hub/topics/brdcrmtopic"
-	prv_topic "github.com/frozenkro/dirtie-srv/internal/hub/topics/prvtopic"
+	"github.com/frozenkro/dirtie-srv/internal/hub/topics/brdcrmtopic"
+	"github.com/frozenkro/dirtie-srv/internal/hub/topics/prvtopic"
 	"github.com/frozenkro/dirtie-srv/internal/services"
 )
 
 type Deps struct {
-	BrdCrmTopic    *brdcrm_topic.BrdCrmTopic
-	ProvisionTopic *prv_topic.ProvisionTopic
+	BrdCrmTopic    *brdcrmtopic.BrdCrmTopic
+	ProvisionTopic *prvtopic.ProvisionTopic
 
 	AuthSvc   services.AuthSvc
 	BrdCrmSvc services.BrdCrmSvc
+	DataSvc   services.DataSvc
 	DeviceSvc services.DeviceSvc
 
 	DeviceRepo  repos.DeviceRepo
@@ -29,7 +30,7 @@ type Deps struct {
 
 	EmailUtil utils.EmailUtil
 	HtmlUtil  utils.HtmlUtil
-  CtxUtil   utils.CtxUtil
+	CtxUtil   utils.CtxUtil
 }
 
 // context is just used for passing test-specific config around
@@ -52,41 +53,44 @@ func NewDeps(ctx context.Context) *Deps {
 	htmlUtil := &utils.HtmlUtil{}
 	ctxUtil := &utils.CtxUtil{}
 
-	authSvc := services.NewAuthSvc(userRepo, 
-    userRepo, 
-    sessionRepo, 
-    sessionRepo, 
-    pwResetRepo, 
-    pwResetRepo, 
-    htmlUtil, 
-    emailUtil)
+	authSvc := services.NewAuthSvc(userRepo,
+		userRepo,
+		sessionRepo,
+		sessionRepo,
+		pwResetRepo,
+		pwResetRepo,
+		htmlUtil,
+		emailUtil)
 	deviceSvc := services.NewDeviceSvc(deviceRepo,
-    deviceRepo, 
-    provStgRepo, 
-    provStgRepo, 
-    ctxUtil)
+		deviceRepo,
+		provStgRepo,
+		provStgRepo,
+		ctxUtil)
 	brdCrmSvc := services.NewBrdCrmSvc(
-    influxRepo, 
-    influxRepo, 
-    deviceSvc)
+		influxRepo,
+		influxRepo,
+		deviceSvc)
+	dataSvc := services.NewDataSvc(
+		influxRepo)
 
-	brdCrmTopic := brdcrm_topic.NewBrdCrmTopic(brdCrmSvc)
-	prvTopic := prv_topic.NewProvisionTopic(*deviceSvc)
+	brdCrmTopic := brdcrmtopic.NewBrdCrmTopic(brdCrmSvc)
+	prvTopic := prvtopic.NewProvisionTopic(*deviceSvc)
 
 	return &Deps{
-		BrdCrmTopic:         brdCrmTopic,
-		ProvisionTopic:      prvTopic,
-		AuthSvc:             *authSvc,
-		BrdCrmSvc:           brdCrmSvc,
-		DeviceSvc:           *deviceSvc,
-		DeviceRepo:          deviceRepo,
-		ProvStgRepo:         provStgRepo,
-		PwResetRepo:         pwResetRepo,
-		SessionRepo:         sessionRepo,
-		UserRepo:            userRepo,
-		EmailUtil:           *emailUtil,
-		HtmlUtil:            *htmlUtil,
-    CtxUtil:             *ctxUtil,
-		InfluxRepo: influxRepo,
+		BrdCrmTopic:    brdCrmTopic,
+		ProvisionTopic: prvTopic,
+		AuthSvc:        *authSvc,
+		BrdCrmSvc:      brdCrmSvc,
+		DataSvc:        dataSvc,
+		DeviceSvc:      *deviceSvc,
+		DeviceRepo:     deviceRepo,
+		ProvStgRepo:    provStgRepo,
+		PwResetRepo:    pwResetRepo,
+		SessionRepo:    sessionRepo,
+		UserRepo:       userRepo,
+		EmailUtil:      *emailUtil,
+		HtmlUtil:       *htmlUtil,
+		CtxUtil:        *ctxUtil,
+		InfluxRepo:     influxRepo,
 	}
 }

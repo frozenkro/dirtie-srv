@@ -15,7 +15,10 @@ func (r ProvisionStagingRepo) CreateProvisionStaging(ctx context.Context, device
 	return r.sr.Execute(ctx, func(q *sqlc.Queries) error {
 		params := sqlc.CreateProvisionStagingParams{
 			DeviceID: deviceId,
-			Contract: pgtype.Text{String: contract},
+			Contract: pgtype.Text{
+				String: contract,
+				Valid:  true,
+			},
 		}
 		return q.CreateProvisionStaging(ctx, params)
 	})
@@ -23,7 +26,12 @@ func (r ProvisionStagingRepo) CreateProvisionStaging(ctx context.Context, device
 
 func (r ProvisionStagingRepo) GetProvisionStagingByContract(ctx context.Context, contract string) (sqlc.ProvisionStaging, error) {
 	res, err := r.sr.Query(ctx, func(q *sqlc.Queries) (interface{}, error) {
-		return q.GetProvisionStagingByContract(ctx, pgtype.Text{String: contract})
+		return q.GetProvisionStagingByContract(
+			ctx,
+			pgtype.Text{
+				String: contract,
+				Valid:  true,
+			})
 	})
 
 	if err != nil || res == nil {

@@ -10,7 +10,7 @@ import (
 
 type DeviceReader interface {
 	GetDeviceByMacAddress(ctx context.Context, macAddr string) (sqlc.Device, error)
-  GetDevicesByUser(ctx context.Context, userId int32) ([]sqlc.Device, error)
+	GetDevicesByUser(ctx context.Context, userId int32) ([]sqlc.Device, error)
 }
 
 type ProvisionStagingReader interface {
@@ -20,7 +20,6 @@ type ProvisionStagingWriter interface {
 	CreateProvisionStaging(ctx context.Context, deviceId int32, contract string) error
 	DeleteProvisionStaging(ctx context.Context, deviceId int32) error
 }
-
 
 type DeviceWriter interface {
 	CreateDevice(ctx context.Context, userId int32, displayName string) (sqlc.Device, error)
@@ -32,12 +31,11 @@ type UserCtxReader interface {
 	GetUser(ctx context.Context) (sqlc.User, error)
 }
 
-
 type DeviceSvc struct {
-	deviceReader DeviceReader
-	deviceWriter DeviceWriter
-	prvStgReader ProvisionStagingReader
-	prvStgWriter ProvisionStagingWriter
+	deviceReader  DeviceReader
+	deviceWriter  DeviceWriter
+	prvStgReader  ProvisionStagingReader
+	prvStgWriter  ProvisionStagingWriter
 	userCtxReader UserCtxReader
 }
 
@@ -47,16 +45,16 @@ type DevicePrvPayload struct {
 }
 
 func NewDeviceSvc(deviceReader DeviceReader,
-  deviceWriter DeviceWriter,
+	deviceWriter DeviceWriter,
 	prvStgReader ProvisionStagingReader,
 	prvStgWriter ProvisionStagingWriter,
 	userCtxReader UserCtxReader) *DeviceSvc {
 
-  return &DeviceSvc{
-    deviceReader: deviceReader,
-    deviceWriter: deviceWriter,
-		prvStgReader: prvStgReader,
-		prvStgWriter: prvStgWriter,
+	return &DeviceSvc{
+		deviceReader:  deviceReader,
+		deviceWriter:  deviceWriter,
+		prvStgReader:  prvStgReader,
+		prvStgWriter:  prvStgWriter,
 		userCtxReader: userCtxReader,
 	}
 }

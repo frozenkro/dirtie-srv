@@ -1,4 +1,4 @@
-package brdcrm_topic
+package brdcrmtopic
 
 import (
 	"context"

@@ -11,7 +11,7 @@ import (
 
 type HtmlUtil struct{}
 
-func (u *HtmlUtil) ReadFile(ctx context.Context, path string) (*template.Template, error) {
+func (u HtmlUtil) ReadFile(ctx context.Context, path string) (*template.Template, error) {
 	return template.ParseFS(assets.AssetDir, path)
 }
 
