@@ -78,9 +78,9 @@ func NewAuthSvc(userReader UserReader,
 	pwResetReader PwResetReader,
 	pwResetWriter PwResetWriter,
 	htmlParser HtmlParser,
-	emailSender EmailSender) *AuthSvc {
+	emailSender EmailSender) AuthSvc {
 
-	return &AuthSvc{
+	return AuthSvc{
 		userReader:    userReader,
 		userWriter:    userWriter,
 		sessionReader: sessionReader,
@@ -97,7 +97,7 @@ type ReplaceVars struct {
 	ResetLink string
 }
 
-func (s *AuthSvc) CreateUser(ctx context.Context, email string, password string, name string) (*sqlc.User, error) {
+func (s AuthSvc) CreateUser(ctx context.Context, email string, password string, name string) (*sqlc.User, error) {
 
 	existingUser, err := s.userReader.GetUserFromEmail(ctx, email)
 	if err != nil {
@@ -119,7 +119,7 @@ func (s *AuthSvc) CreateUser(ctx context.Context, email string, password string,
 	return &newUser, err
 }
 
-func (s *AuthSvc) Login(ctx context.Context, email string, password string) (string, error) {
+func (s AuthSvc) Login(ctx context.Context, email string, password string) (string, error) {
 	user, err := s.userReader.GetUserFromEmail(ctx, email)
 	if err != nil {
 		return "", fmt.Errorf("Error Login -> GetUserFromEmail: \n%w\n", err)
@@ -152,7 +152,7 @@ func (s *AuthSvc) Login(ctx context.Context, email string, password string) (str
 	return token, nil
 }
 
-func (s *AuthSvc) ValidateToken(ctx context.Context, token string) (*sqlc.User, error) {
+func (s AuthSvc) ValidateToken(ctx context.Context, token string) (*sqlc.User, error) {
 	session, err := s.sessionReader.GetSession(ctx, token)
 	if err != nil {
 		return nil, fmt.Errorf("Error ValidateToken -> GetSession: \n%w\n", err)
@@ -174,7 +174,7 @@ func (s *AuthSvc) ValidateToken(ctx context.Context, token string) (*sqlc.User, 
 	return &user, nil
 }
 
-func (s *AuthSvc) Logout(ctx context.Context, token string) error {
+func (s AuthSvc) Logout(ctx context.Context, token string) error {
 	session, err := s.sessionReader.GetSession(ctx, token)
 	if err != nil {
 		return fmt.Errorf("Error Logout -> GetSession: \n%w\n", err)
@@ -187,7 +187,7 @@ func (s *AuthSvc) Logout(ctx context.Context, token string) error {
 	return nil
 }
 
-func (s *AuthSvc) ForgotPw(ctx context.Context, email string) error {
+func (s AuthSvc) ForgotPw(ctx context.Context, email string) error {
 	// Find user
 	user, err := s.userReader.GetUserFromEmail(ctx, email)
 	if err != nil {
@@ -236,7 +236,7 @@ func (s *AuthSvc) ForgotPw(ctx context.Context, email string) error {
 	return nil
 }
 
-func (s *AuthSvc) ValidateForgotPwToken(ctx context.Context, encToken string) (int32, error) {
+func (s AuthSvc) ValidateForgotPwToken(ctx context.Context, encToken string) (int32, error) {
 	// decode token
 	bytes, err := base64.URLEncoding.DecodeString(encToken)
 	if err != nil {
@@ -261,7 +261,7 @@ func (s *AuthSvc) ValidateForgotPwToken(ctx context.Context, encToken string) (i
 	return res.UserID, nil
 }
 
-func (s *AuthSvc) ChangePw(ctx context.Context, encToken string, newPw string) error {
+func (s AuthSvc) ChangePw(ctx context.Context, encToken string, newPw string) error {
 	userId, err := s.ValidateForgotPwToken(ctx, encToken)
 	if err != nil {
 		return fmt.Errorf("Error ChangePw -> ValidateForgotPwToken: \n%w\n", err)

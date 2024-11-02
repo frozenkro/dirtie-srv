@@ -24,7 +24,7 @@ var (
 	pwResetWriter mocks.MockPwResetWriter
 	emailSender   mocks.MockEmailSender
 	htmlParser    mocks.MockHtmlParser
-	authSvc       *AuthSvc
+	authSvc       AuthSvc
 )
 
 func setupAuthSvcTests() {

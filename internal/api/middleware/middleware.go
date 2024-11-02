@@ -11,6 +11,10 @@ import (
 	"github.com/frozenkro/dirtie-srv/internal/services"
 )
 
+type TokenValidator interface {
+  ValidateToken(context.Context, string) (*sqlc.User, error)
+}
+
 type Adapter func(http.Handler) http.Handler
 
 func Adapt(h http.Handler, adapters ...Adapter) http.Handler {
@@ -33,7 +37,7 @@ func LogTransaction() Adapter {
 	}
 }
 
-func Authorize(authSvc services.AuthSvc) Adapter {
+func Authorize(authSvc TokenValidator) Adapter {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			cookie, err := r.Cookie("dirtie.auth")

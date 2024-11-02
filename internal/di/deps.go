@@ -79,7 +79,7 @@ func NewDeps(ctx context.Context) *Deps {
 	return &Deps{
 		BrdCrmTopic:    brdCrmTopic,
 		ProvisionTopic: prvTopic,
-		AuthSvc:        *authSvc,
+		AuthSvc:        authSvc,
 		BrdCrmSvc:      brdCrmSvc,
 		DataSvc:        dataSvc,
 		DeviceSvc:      *deviceSvc,
