@@ -12,7 +12,7 @@ import (
 )
 
 type TokenValidator interface {
-  ValidateToken(context.Context, string) (*sqlc.User, error)
+	ValidateToken(context.Context, string) (*sqlc.User, error)
 }
 
 type Adapter func(http.Handler) http.Handler
