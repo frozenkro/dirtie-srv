@@ -52,9 +52,12 @@ func (s BrdCrmSvc) RecordBrdCrm(ctx context.Context, brdCrm BreadCrumb) error {
 	}
 
 	err = s.DataRecorder.Record(ctx, int(dvc.DeviceID), core.Capacitance, brdCrm.Capacitance)
+	if err != nil {
+		return fmt.Errorf("Error RecordBrdCrm -> Record capacitance: \n%w\n", err)
+	}
 	err = s.DataRecorder.Record(ctx, int(dvc.DeviceID), core.Temperature, brdCrm.Temperature)
 	if err != nil {
-		return fmt.Errorf("Error RecordBrdCrm -> Record: \n%w\n", err)
+		return fmt.Errorf("Error RecordBrdCrm -> Record temperature: \n%w\n", err)
 	}
 	return nil
 }

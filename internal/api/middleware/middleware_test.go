@@ -8,16 +8,16 @@ import (
 
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
 	"github.com/frozenkro/dirtie-srv/internal/services"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 type MockTokenValidator struct {
-  mock.Mock
+	mock.Mock
 }
 
 func (m *MockTokenValidator) ValidateToken(ctx context.Context, token string) (*sqlc.User, error) {
-  args := m.Called(ctx, token)
+	args := m.Called(ctx, token)
 	if user, ok := args.Get(0).(*sqlc.User); ok {
 		return user, args.Error(1)
 	}
