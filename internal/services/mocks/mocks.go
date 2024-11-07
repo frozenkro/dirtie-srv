@@ -54,6 +54,23 @@ type MockDeviceGetter struct {
 	*mock.Mock
 }
 
+type MockDeviceReader struct {
+	*mock.Mock
+}
+type MockDeviceWriter struct {
+	*mock.Mock
+}
+
+type MockPrvStgReader struct {
+	*mock.Mock
+}
+type MockPrvStgWriter struct {
+	*mock.Mock
+}
+type MockUserCtxReader struct {
+	*mock.Mock
+}
+
 // Implement UserRepo interface methods for MockUserRepo
 func (m MockUserReader) GetUserFromEmail(ctx context.Context, email string) (sqlc.User, error) {
 	args := m.Called(ctx, email)
@@ -165,4 +182,49 @@ func (m MockDeviceDataRecorder) Record(
 func (m MockDeviceGetter) GetDeviceByMacAddress(ctx context.Context, macAddr string) (sqlc.Device, error) {
 	args := m.Called(ctx, macAddr)
 	return args.Get(0).(sqlc.Device), args.Error(1)
+}
+
+func (m MockDeviceReader) GetDeviceByMacAddress(ctx context.Context, macAddr string) (sqlc.Device, error) {
+	args := m.Called(ctx, macAddr)
+	return args.Get(0).(sqlc.Device), args.Error(1)
+}
+
+func (m MockDeviceReader) GetDevicesByUser(ctx context.Context, userId int32) ([]sqlc.Device, error) {
+	args := m.Called(ctx, userId)
+	return args.Get(0).([]sqlc.Device), args.Error(1)
+}
+
+func (m MockDeviceWriter) CreateDevice(ctx context.Context, userId int32, displayName string) (sqlc.Device, error) {
+	args := m.Called(ctx, userId, displayName)
+	return args.Get(0).(sqlc.Device), args.Error(1)
+}
+
+func (m MockDeviceWriter) RenameDevice(ctx context.Context, deviceId int32, displayName string) error {
+	args := m.Called(ctx, deviceId, displayName)
+	return args.Error(0)
+}
+
+func (m MockDeviceWriter) UpdateDeviceMacAddress(ctx context.Context, deviceId int32, macAddr string) error {
+	args := m.Called(ctx, deviceId, macAddr)
+	return args.Error(0)
+}
+
+func (m MockPrvStgWriter) CreateProvisionStaging(ctx context.Context, deviceId int32, contract string) error {
+	args := m.Called(ctx, deviceId, contract)
+	return args.Error(0)
+}
+
+func (m MockPrvStgWriter) DeleteProvisionStaging(ctx context.Context, deviceId int32) error {
+	args := m.Called(ctx, deviceId)
+	return args.Error(0)
+}
+
+func (m MockPrvStgReader) GetProvisionStagingByContract(ctx context.Context, contract string) (sqlc.ProvisionStaging, error) {
+	args := m.Called(ctx, contract)
+	return args.Get(0).(sqlc.ProvisionStaging), args.Error(1)
+}
+
+func (m MockUserCtxReader) GetUser(ctx context.Context) (sqlc.User, error) {
+	args := m.Called(ctx)
+	return args.Get(0).(sqlc.User), args.Error(1)
 }
