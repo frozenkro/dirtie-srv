@@ -113,7 +113,6 @@ func TestLogin(t *testing.T) {
 		email := "test@example.com"
 		password := "wrongpassword"
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("correctpassword"), 10)
-
 		userReader.On("GetUserFromEmail", ctx, email).Return(sqlc.User{UserID: 1, Email: email, PwHash: hashedPassword}, nil)
 
 		token, err := authSvc.Login(ctx, email, password)
@@ -172,4 +171,22 @@ func TestValidateToken(t *testing.T) {
 		assert.True(t, errors.Is(err, ErrInvalidToken))
 		sessionReader.AssertExpectations(t)
 	})
+}
+
+func TestLogout(t *testing.T) {
+  ctx := context.Background()
+	setupAuthSvcTests()
+
+  t.Run("Success", func(t *testing.T) {
+    token := "test_token"
+    session := sqlc.Session{ UserID: 42069 }
+
+    sessionReader.On("GetSession", ctx, token).Return(session, nil)
+    sessionWriter.On("DeleteUserSessions", ctx, session.UserID).Return(nil)
+
+    err := authSvc.Logout(ctx, token)
+    assert.Nil(t, err)
+    sessionReader.AssertExpectations(t)
+    sessionWriter.AssertExpectations(t)
+  })
 }
