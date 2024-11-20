@@ -45,15 +45,15 @@ type ChangePwData struct {
 
 func SetupAuthHandlers(deps *di.Deps) {
 	http.Handle("POST /users", middleware.Adapt(
-		createUserHandler(deps.AuthSvc),
+		CreateUserHandler(deps.AuthSvc),
 		middleware.LogTransaction(),
 	))
 	http.Handle("POST /login", middleware.Adapt(
-		loginHandler(deps.AuthSvc),
+		LoginHandler(deps.AuthSvc),
 		middleware.LogTransaction(),
 	))
 	http.Handle("POST /logout", middleware.Adapt(
-		logoutHandler(deps.AuthSvc),
+		LogoutHandler(deps.AuthSvc),
 		middleware.Authorize(deps.AuthSvc),
 		middleware.LogTransaction(),
 	))
@@ -67,7 +67,7 @@ func SetupAuthHandlers(deps *di.Deps) {
 	))
 }
 
-func createUserHandler(authSvc services.AuthSvc) http.Handler {
+func CreateUserHandler(authSvc services.AuthSvc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var args CreateUserArgs
 
@@ -93,7 +93,7 @@ func createUserHandler(authSvc services.AuthSvc) http.Handler {
 	})
 }
 
-func loginHandler(authSvc services.AuthSvc) http.Handler {
+func LoginHandler(authSvc services.AuthSvc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var args LoginArgs
 
@@ -122,7 +122,7 @@ func loginHandler(authSvc services.AuthSvc) http.Handler {
 	})
 }
 
-func logoutHandler(authSvc services.AuthSvc) http.Handler {
+func LogoutHandler(authSvc services.AuthSvc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("dirtie.auth")
 		if err != nil {
