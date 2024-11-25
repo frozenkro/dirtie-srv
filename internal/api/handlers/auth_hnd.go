@@ -37,10 +37,10 @@ type LoginArgs struct {
 }
 
 type ChangePwData struct {
-	Username     string
-	Success      bool
-	Error        bool
-	ErrorMessage string
+  Username     string `json:"username"`
+  Success      bool   `json:"success"`
+  Error        bool   `json:"error"`
+  ErrorMessage string `json:"errorMessage"`
 }
 
 func SetupAuthHandlers(deps *di.Deps) {
