@@ -12,7 +12,7 @@ import (
 )
 
 type DeviceDataPoint struct {
-  Value int64     `json:"value"`
+	Value int64     `json:"value"`
 	Time  time.Time `json:"time"`
 	Key   string    `json:"key"`
 }
