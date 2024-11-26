@@ -10,6 +10,10 @@ import (
 	"github.com/frozenkro/dirtie-srv/internal/services"
 )
 
+type CreateProvisionResponse struct {
+  Contract string `json:"contract"`
+}
+
 func SetupDeviceHandlers(deps *di.Deps) {
 	http.Handle("GET /devices", middleware.Adapt(
 		getUserDevicesHandler(deps.DeviceSvc),
@@ -56,7 +60,13 @@ func createDeviceProvisionHandler(deviceSvc services.DeviceSvc) http.Handler {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+    res := CreateProvisionResponse{ Contract: contract }
+    res_b, err := json.Marshal(res)
+    if err != nil {
+      // todo log stuff like this 
+      http.Error(w, "An error has occurred", http.StatusInternalServerError)
+    }
 
-		w.Write([]byte(contract))
+		w.Write(res_b)
 	})
 }
