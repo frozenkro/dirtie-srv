@@ -13,6 +13,7 @@ import (
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
 	"github.com/frozenkro/dirtie-srv/internal/di"
+	"github.com/frozenkro/dirtie-srv/internal/dto"
 	"github.com/frozenkro/dirtie-srv/internal/services"
 )
 
@@ -83,7 +84,7 @@ func createUserHandler(authSvc services.AuthSvc) http.Handler {
 			return
 		}
 
-		res, err := json.Marshal(user)
+		res, err := json.Marshal(dto.NewUserDto(*user))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

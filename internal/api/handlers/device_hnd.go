@@ -7,6 +7,7 @@ import (
 	"github.com/frozenkro/dirtie-srv/internal/api/middleware"
 	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/frozenkro/dirtie-srv/internal/di"
+	"github.com/frozenkro/dirtie-srv/internal/dto"
 	"github.com/frozenkro/dirtie-srv/internal/services"
 )
 
@@ -35,6 +36,11 @@ func getUserDevicesHandler(deviceSvc services.DeviceSvc) http.Handler {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+    dtoList := make([]dto.DeviceDto, len(devices))
+    for i, d := range devices {
+      dtoList[i] = *dto.NewDeviceDto(d)
+    }
 
 		res, err := json.Marshal(devices)
 		if err != nil {
