@@ -7,8 +7,13 @@ import (
 	"github.com/frozenkro/dirtie-srv/internal/api/middleware"
 	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/frozenkro/dirtie-srv/internal/di"
+	"github.com/frozenkro/dirtie-srv/internal/dto"
 	"github.com/frozenkro/dirtie-srv/internal/services"
 )
+
+type CreateProvisionResponse struct {
+  Contract string `json:"contract"`
+}
 
 func SetupDeviceHandlers(deps *di.Deps) {
 	http.Handle("GET /devices", middleware.Adapt(
@@ -31,6 +36,11 @@ func getUserDevicesHandler(deviceSvc services.DeviceSvc) http.Handler {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+    dtoList := make([]dto.DeviceDto, len(devices))
+    for i, d := range devices {
+      dtoList[i] = *dto.NewDeviceDto(d)
+    }
 
 		res, err := json.Marshal(devices)
 		if err != nil {
@@ -56,7 +66,13 @@ func createDeviceProvisionHandler(deviceSvc services.DeviceSvc) http.Handler {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+    res := CreateProvisionResponse{ Contract: contract }
+    res_b, err := json.Marshal(res)
+    if err != nil {
+      // todo log stuff like this 
+      http.Error(w, "An error has occurred", http.StatusInternalServerError)
+    }
 
-		w.Write([]byte(contract))
+		w.Write(res_b)
 	})
 }
