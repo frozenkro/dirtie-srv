@@ -12,7 +12,7 @@ import (
 )
 
 type CreateProvisionResponse struct {
-  Contract string `json:"contract"`
+	Contract string `json:"contract"`
 }
 
 func SetupDeviceHandlers(deps *di.Deps) {
@@ -37,10 +37,10 @@ func getUserDevicesHandler(deviceSvc services.DeviceSvc) http.Handler {
 			return
 		}
 
-    dtoList := make([]dto.DeviceDto, len(devices))
-    for i, d := range devices {
-      dtoList[i] = *dto.NewDeviceDto(d)
-    }
+		dtoList := make([]dto.DeviceDto, len(devices))
+		for i, d := range devices {
+			dtoList[i] = *dto.NewDeviceDto(d)
+		}
 
 		res, err := json.Marshal(devices)
 		if err != nil {
@@ -66,12 +66,12 @@ func createDeviceProvisionHandler(deviceSvc services.DeviceSvc) http.Handler {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-    res := CreateProvisionResponse{ Contract: contract }
-    res_b, err := json.Marshal(res)
-    if err != nil {
-      // todo log stuff like this 
-      http.Error(w, "An error has occurred", http.StatusInternalServerError)
-    }
+		res := CreateProvisionResponse{Contract: contract}
+		res_b, err := json.Marshal(res)
+		if err != nil {
+			// todo log stuff like this
+			http.Error(w, "An error has occurred", http.StatusInternalServerError)
+		}
 
 		w.Write(res_b)
 	})
