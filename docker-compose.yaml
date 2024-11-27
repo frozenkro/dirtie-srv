@@ -90,6 +90,10 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
+networks:
+  dirtie_net:
+    driver: bridge
+
 volumes:
   mosquitto:
     external: true

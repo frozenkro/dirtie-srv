@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"html/template"
 	"net/http"
 
+	"github.com/frozenkro/dirtie-srv/assets"
 	"github.com/frozenkro/dirtie-srv/internal/api/middleware"
 	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/frozenkro/dirtie-srv/internal/core/utils"
@@ -214,7 +214,7 @@ func changePwHandler(authSvc services.AuthSvc, htmlParser HtmlParser, userGetter
 		}
 
 		// serve page with data
-		tmpl, err := htmlParser.ReadFile(ctx, fmt.Sprintf("%vchangePasswordPage.html", core.ASSETS_DIR))
+		tmpl, err := htmlParser.ReadFile(ctx, assets.ChangePasswordPageKey)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
