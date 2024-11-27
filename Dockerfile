@@ -9,6 +9,7 @@ RUN go mod download
 
 COPY ./cmd ./cmd
 COPY ./internal ./internal
+COPY ./assets ./assets
 RUN CGO_ENABLED=0 GOOS=linux go build ./cmd/main.go
 
 EXPOSE 8000

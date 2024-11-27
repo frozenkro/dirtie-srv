@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/frozenkro/dirtie-srv/internal/core"
+	"github.com/frozenkro/dirtie-srv/assets"
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -214,7 +214,7 @@ func (s AuthSvc) ForgotPw(ctx context.Context, email string) error {
 	}
 
 	// load and fill html template
-	template, err := s.htmlParser.ReadFile(ctx, fmt.Sprintf("%vresetPwEmail.html", core.ASSETS_DIR))
+	template, err := s.htmlParser.ReadFile(ctx, assets.ResetPwEmailKey)
 	if err != nil {
 		return fmt.Errorf("Error ForgotPw -> ReadFile: \n%w\n", err)
 	}
