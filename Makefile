@@ -12,7 +12,7 @@ dev:
 debug:
 	docker-compose up -d mosquitto influxdb grafana postgres
 	sleep 1
-	dlv debug github.com/frozenkro/dirtie-srv/cmd/main.go
+	dlv debug ./cmd/main.go
 
 test:
 	docker-compose up -d pg_test ix_test
