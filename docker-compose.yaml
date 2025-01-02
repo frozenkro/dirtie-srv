@@ -54,6 +54,7 @@ services:
       - INFLUX_DEFAULT_BUCKET=${INFLUX_DEFAULT_BUCKET}
       - INFLUX_URI=influxdb:8086
       - MOSQUITTO_URI=mosquitto:1883
+      - POSTGRES_SERVER=postgres:5432
       - APP_HOST=container
       - ASSETS_DIR=./assets/
     depends_on:

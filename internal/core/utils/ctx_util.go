@@ -10,6 +10,7 @@ import (
 type CtxUtil struct{}
 
 var ErrNoUserCtx = fmt.Errorf("Error: No user object in context")
+var ErrInvalidUserCtx = fmt.Errorf("Error: Unable to parse user object from context")
 
 func (s *CtxUtil) GetUser(ctx context.Context) (sqlc.User, error) {
 	val := ctx.Value("user")
@@ -17,9 +18,9 @@ func (s *CtxUtil) GetUser(ctx context.Context) (sqlc.User, error) {
 		return sqlc.User{}, ErrNoUserCtx
 	}
 
-	user, valid := val.(sqlc.User)
+	user, valid := val.(*sqlc.User)
 	if !valid {
-		return sqlc.User{}, ErrNoUserCtx
+		return sqlc.User{}, ErrInvalidUserCtx
 	}
-	return user, nil
+	return *user, nil
 }
