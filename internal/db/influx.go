@@ -113,7 +113,8 @@ func newDeviceDataPoint(r *api.QueryTableResult) (DeviceDataPoint, error) {
 			`Error in newDeviceDataPoint - no influx result`,
 		)
 	}
-	valInt, succ := val.(int64)
+
+	valF, succ := val.(float64)
 	if !succ {
 		return DeviceDataPoint{}, fmt.Errorf(
 			`Error in newDeviceDataPoint - failed to cast influx result. 
@@ -122,6 +123,9 @@ func newDeviceDataPoint(r *api.QueryTableResult) (DeviceDataPoint, error) {
 			r.Record().Measurement(),
 		)
 	}
+
+	valInt := int64(valF)
+
 	return DeviceDataPoint{
 		Value: valInt,
 		Time:  r.Record().Time(),
