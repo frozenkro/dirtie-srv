@@ -24,6 +24,7 @@ func Init(deps *di.Deps) {
 
 	handlers.SetupAuthHandlers(deps)
 	handlers.SetupDeviceHandlers(deps)
+	handlers.SetupDatahanders(deps)
 
 	utils.LogInfo(fmt.Sprintf("Starting web server on port %v", PORT))
 
