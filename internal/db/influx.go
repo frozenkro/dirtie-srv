@@ -80,9 +80,9 @@ func (r InfluxRepo) GetValuesRange(
 
 	query := fmt.Sprintf(`
     from(bucket:"%v")
-    |> range(start: "%v", stop: "%v")
+    |> range(start: %v, stop: %v)
     |> filter(fn: (r) => r._measurement == "%v" and r._field == "%v")
-  `, core.INFLUX_DEFAULT_BUCKET, measurementKey, measurementKey, start.Format(time.RFC3339), end.Format(time.RFC3339))
+  `, core.INFLUX_DEFAULT_BUCKET, start.Format(time.RFC3339), end.Format(time.RFC3339), measurementKey, measurementKey)
 
 	qRes, err := queryAPI.Query(ctx, query)
 	if err != nil {
