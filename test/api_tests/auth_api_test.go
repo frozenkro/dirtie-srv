@@ -1,4 +1,4 @@
-package handlers
+package api_tests
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/frozenkro/dirtie-srv/internal/api/handlers"
 	"github.com/frozenkro/dirtie-srv/internal/core"
 	"github.com/frozenkro/dirtie-srv/internal/core/int_tst"
 	"github.com/frozenkro/dirtie-srv/internal/db/sqlc"
@@ -24,12 +25,12 @@ func TestCreateUser(t *testing.T) {
 	defer db.Close(ctx)
 
 	deps := di.NewDeps(ctx)
-	server := httptest.NewServer(createUserHandler(deps.AuthSvc))
+	server := httptest.NewServer(handlers.CreateUserHandler(deps.AuthSvc))
 	defer server.Close()
 
 	t.Run("Success", func(t *testing.T) {
 
-		userArgs := CreateUserArgs{
+		userArgs := handlers.CreateUserArgs{
 			Email:    "createusertest@email.com",
 			Password: "createuserpassword",
 			Name:     "Test User",
@@ -70,7 +71,7 @@ func TestCreateUser(t *testing.T) {
 	})
 
 	t.Run("UserAlreadyExists", func(t *testing.T) {
-		userArgs := CreateUserArgs{
+		userArgs := handlers.CreateUserArgs{
 			Email:    int_tst.TestUser.Email,
 			Password: "createuserpassword",
 			Name:     "Test User",
@@ -96,11 +97,11 @@ func TestLogin(t *testing.T) {
 	defer db.Close(ctx)
 
 	deps := di.NewDeps(ctx)
-	server := httptest.NewServer(loginHandler(deps.AuthSvc))
+	server := httptest.NewServer(handlers.LoginHandler(deps.AuthSvc))
 	defer server.Close()
 
 	t.Run("Success", func(t *testing.T) {
-		loginArgs := LoginArgs{
+		loginArgs := handlers.LoginArgs{
 			Email:    int_tst.TestUser.Email,
 			Password: "testpw",
 		}
@@ -161,7 +162,7 @@ func TestLogin(t *testing.T) {
 	})
 
 	t.Run("InvalidPassword", func(t *testing.T) {
-		loginArgs := LoginArgs{
+		loginArgs := handlers.LoginArgs{
 			Email:    int_tst.TestUser.Email,
 			Password: "wrongpw",
 		}
@@ -188,7 +189,7 @@ func TestLogout(t *testing.T) {
 	defer db.Close(ctx)
 
 	deps := di.NewDeps(ctx)
-	server := httptest.NewServer(logoutHandler(deps.AuthSvc))
+	server := httptest.NewServer(handlers.LogoutHandler(deps.AuthSvc))
 	defer server.Close()
 
 	t.Run("Success", func(t *testing.T) {
@@ -216,10 +217,10 @@ func TestLogout(t *testing.T) {
 }
 
 func getCookie(s services.AuthSvc, t *testing.T) *http.Cookie {
-	srv := httptest.NewServer(loginHandler(s))
+	srv := httptest.NewServer(handlers.LoginHandler(s))
 	defer srv.Close()
 
-	loginArgs := LoginArgs{
+	loginArgs := handlers.LoginArgs{
 		Email:    int_tst.TestUser.Email,
 		Password: "testpw",
 	}
