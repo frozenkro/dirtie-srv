@@ -5,3 +5,5 @@ debug.test*
 
 ./mosquitto/
 !./mosquitto/config/mosquitto.conf
+
+**/.claude/settings.local.json
