@@ -1,0 +1,54 @@
+name: Deploy App and Services
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps: 
+    - name: Checkout Repo
+      uses: actions/checkout@v4
+
+    - name: Set up SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_KEY_RPIC1 }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_ed25519
+        ssh-keyscan -H ${{ secrets.REMOTE_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Create .env
+      run: |
+        ssh -i ~/.ssh/id_ed25519 ${{ vars.HOST_USER }}@${{ vars.HOST_IP }} << 'EOF'
+          cat > ~/.env << 'INNER'
+            INFLUX_ORG=${{ vars.INFLUX_ORG }}
+            INFLUX_DEFAULT_BUCKET=${{ vars.INFLUX_DEFAULT_BUCKET }}
+            INFLUX_TOKEN=${{ vars.INFLUX_TOKEN }}
+            INFLUX_USERNAME=${{ vars.INFLUX_USERNAME }}
+            INFLUX_PASSWORD=${{ secrets.INFLUX_PASSWORD }}
+
+            POSTGRES_SERVER=${{ vars.POSTGRES_SERVER }}
+            POSTGRES_DB=${{ vars.POSTGRES_DB }}
+            POSTGRES_USER=${{ vars.POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          INNER
+        EOF
+
+    - name: Copy docker-compose.prod.yaml
+      run: |
+        scp -i ~/.ssh/id_ed25519 \
+          docker-compose.prod.yaml \
+      ${{ vars.HOST_USER }}@${{ vars.HOST_IP }}:~/app/
+
+
+    - name: Deploy via SSH
+      run: |
+        ssh -i ~/.ssh/id_ed25519 ${{ vars.HOST_USER }}@${{ vars.HOST_IP }} << 'EOF'
+          cd ~/app
+          docker compose pull
+          docker compose up -d --remove-orphans
+        EOF
+
+
