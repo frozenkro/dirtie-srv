@@ -40,7 +40,7 @@ jobs:
       run: |
         scp -i ~/.ssh/id_ed25519 \
           docker-compose.prod.yaml \
-      ${{ vars.HOST_USER }}@${{ vars.HOST_IP }}:~/app/
+          ${{ vars.HOST_USER }}@${{ vars.HOST_IP }}:~/app/
 
 
     - name: Deploy via SSH
