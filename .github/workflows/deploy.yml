@@ -26,6 +26,7 @@ jobs:
     - name: Create .env
       run: |
         ssh -i ~/.ssh/id_ed25519 ${{ vars.HOST_USER }}@${{ vars.HOST_IP }} << 'EOF'
+          touch ~/app/.env
           cat > ~/app/.env << 'INNER'
             INFLUX_ORG=${{ vars.INFLUX_ORG }}
             INFLUX_DEFAULT_BUCKET=${{ vars.INFLUX_DEFAULT_BUCKET }}
@@ -37,7 +38,7 @@ jobs:
             POSTGRES_DB=${{ vars.POSTGRES_DB }}
             POSTGRES_USER=${{ vars.POSTGRES_USER }}
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-          INNER
+            INNER
         EOF
 
     - name: Copy docker-compose.prod.yaml
