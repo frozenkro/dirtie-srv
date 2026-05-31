@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dirtie-srv
+  namespace: dirtie
+spec:
+  rules:
+    - host: dirtie.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dirtie-srv
+                port:
+                  number: 8080

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dirtie-srv
+  namespace: dirtie
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dirtie-srv
+  template:
+    metadata:
+      labels:
+        app: dirtie-srv
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      topologySpreadConstraints: # adding this to spread app evenly over pis for testing
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: dirtie-srv
+      containers:
+        - name: app
+          image: ghcr.io/frozenkro/dirtie-srv:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: dirtie-config
+          env:
+            - name: INFLUX_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: dirtie-secrets
+                  key: influx-token
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dirtie-secrets
+                  key: postgres-password

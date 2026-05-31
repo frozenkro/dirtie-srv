@@ -5,13 +5,24 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   deploy:
     runs-on: self-hosted
 
-    steps: 
+    steps:
     - name: Checkout Repo
       uses: actions/checkout@v6
+
+    - name: Build and push container image
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        docker build -t ghcr.io/frozenkro/dirtie-srv:${{ github.sha }} -t ghcr.io/frozenkro/dirtie-srv:latest .
+        docker push ghcr.io/frozenkro/dirtie-srv:${{ github.sha }}
+        docker push ghcr.io/frozenkro/dirtie-srv:latest
 
     - name: Set up SSH key
       run: |
@@ -27,7 +38,7 @@ jobs:
         cat > ~/app/.env << 'INNER'
         INFLUX_ORG=${{ vars.INFLUX_ORG }}
         INFLUX_DEFAULT_BUCKET=${{ vars.INFLUX_DEFAULT_BUCKET }}
-        INFLUX_TOKEN=${{ vars.INFLUX_TOKEN }}
+        INFLUX_TOKEN=${{ secrets.INFLUX_TOKEN }}
         INFLUX_USERNAME=${{ vars.INFLUX_USERNAME }}
         INFLUX_PASSWORD=${{ secrets.INFLUX_PASSWORD }}
 
@@ -44,8 +55,13 @@ jobs:
           docker-compose.prod.yaml \
           ${{ vars.HOST_USER }}@${{ vars.HOST_IP }}:~/app/docker-compose.yaml
 
+    - name: Copy k8s manifests
+      run: |
+        scp -i ~/.ssh/id_ed25519 -r \
+          k8s/ \
+          ${{ vars.HOST_USER }}@${{ vars.HOST_IP }}:~/k8s/
 
-    - name: Deploy via SSH
+    - name: Deploy data plane via SSH
       run: |
         ssh -i ~/.ssh/id_ed25519 ${{ vars.HOST_USER }}@${{ vars.HOST_IP }} << 'EOF'
           cd ~/app
@@ -53,4 +69,17 @@ jobs:
           docker compose up -d --remove-orphans
         EOF
 
-
+    - name: Deploy app to k3s cluster
+      run: |
+        ssh -i ~/.ssh/id_ed25519 ${{ vars.HOST_USER }}@${{ vars.HOST_IP }} << 'EOF'
+          export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+          kubectl create namespace dirtie --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret generic dirtie-secrets \
+            --namespace dirtie \
+            --from-literal=influx-token="${{ secrets.INFLUX_TOKEN }}" \
+            --from-literal=postgres-password="${{ secrets.POSTGRES_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f ~/k8s/
+          kubectl set image deployment/dirtie-srv app=ghcr.io/frozenkro/dirtie-srv:${{ github.sha }} -n dirtie
+          kubectl rollout status deployment/dirtie-srv -n dirtie
+        EOF

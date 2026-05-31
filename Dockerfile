@@ -12,6 +12,6 @@ COPY ./internal ./internal
 COPY ./assets ./assets
 RUN CGO_ENABLED=0 GOOS=linux go build ./cmd/main.go
 
-EXPOSE 8000
+EXPOSE 8080
 
 CMD ["/app/main"]

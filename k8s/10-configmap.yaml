@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dirtie-config
+  namespace: dirtie
+data:
+  INFLUX_URI: "http://10.0.0.1:8086"
+  INFLUX_ORG: "dirtie"
+  INFLUX_DEFAULT_BUCKET: "breadcrumbs"
+  POSTGRES_SERVER: "10.0.0.1:5432"
+  POSTGRES_DB: "dirtie"
+  POSTGRES_USER: "dirtie"
+  MOSQUITTO_URI: "10.0.0.1:1883"
+  APP_HOST: "container"
+  ASSETS_DIR: "./assets/"
