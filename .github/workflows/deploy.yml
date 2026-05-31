@@ -31,10 +31,14 @@ jobs:
         chmod 600 ~/.ssh/id_ed25519
         ssh-keyscan -H ${{ vars.HOST_IP }} >> ~/.ssh/known_hosts
 
+    - name: Create dirs
+      run: |
+        ssh -i ~/.ssh/id_ed25519 ${{ vars.HOST_USER }}@${{ vars.HOST_IP }} << 'EOF'
+        mkdir -p {~/app,~/k8s}
+
     - name: Create .env
       run: |
         ssh -i ~/.ssh/id_ed25519 ${{ vars.HOST_USER }}@${{ vars.HOST_IP }} << 'EOF'
-        mkdir -p ~/app
         cat > ~/app/.env << 'INNER'
         INFLUX_ORG=${{ vars.INFLUX_ORG }}
         INFLUX_DEFAULT_BUCKET=${{ vars.INFLUX_DEFAULT_BUCKET }}
