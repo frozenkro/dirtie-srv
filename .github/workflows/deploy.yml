@@ -29,6 +29,7 @@ jobs:
         INFLUX_TOKEN=${{ vars.INFLUX_TOKEN }}
         INFLUX_USERNAME=${{ vars.INFLUX_USERNAME }}
         INFLUX_PASSWORD=${{ secrets.INFLUX_PASSWORD }}
+
         POSTGRES_SERVER=${{ vars.POSTGRES_SERVER }}
         POSTGRES_DB=${{ vars.POSTGRES_DB }}
         POSTGRES_USER=${{ vars.POSTGRES_USER }}
