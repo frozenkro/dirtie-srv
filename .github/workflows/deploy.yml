@@ -10,7 +10,7 @@ jobs:
 
     steps: 
     - name: Checkout Repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Set up SSH key
       run: |
@@ -19,10 +19,14 @@ jobs:
         chmod 600 ~/.ssh/id_ed25519
         ssh-keyscan -H ${{ vars.HOST_IP }} >> ~/.ssh/known_hosts
 
+    - name: Make app dir
+      run: |
+        mkdir -p ~/app
+
     - name: Create .env
       run: |
         ssh -i ~/.ssh/id_ed25519 ${{ vars.HOST_USER }}@${{ vars.HOST_IP }} << 'EOF'
-          cat > ~/.env << 'INNER'
+          cat > ~/app/.env << 'INNER'
             INFLUX_ORG=${{ vars.INFLUX_ORG }}
             INFLUX_DEFAULT_BUCKET=${{ vars.INFLUX_DEFAULT_BUCKET }}
             INFLUX_TOKEN=${{ vars.INFLUX_TOKEN }}
