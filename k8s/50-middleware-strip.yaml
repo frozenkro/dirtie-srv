@@ -1,0 +1,9 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-dirtie-prefix
+  namespace: dirtie
+spec:
+  stripPrefix:
+    prefixes:
+      - /dirtie
