@@ -9,7 +9,7 @@ data:
   INFLUX_DEFAULT_BUCKET: "breadcrumbs"
   POSTGRES_SERVER: "10.0.0.1:5432"
   POSTGRES_DB: "dirtie"
-  POSTGRES_USER: "dirtie"
+  POSTGRES_USER: "dirtie_admin"
   MOSQUITTO_URI: "10.0.0.1:1883"
   APP_HOST: "container"
   ASSETS_DIR: "./assets/"
