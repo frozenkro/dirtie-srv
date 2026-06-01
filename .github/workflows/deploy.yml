@@ -62,7 +62,7 @@ jobs:
     - name: Copy k8s manifests
       run: |
         scp -i ~/.ssh/id_ed25519 -r \
-          k8s/ \
+          k8s/* \
           ${{ vars.HOST_USER }}@${{ vars.HOST_IP }}:~/k8s/
 
     - name: Deploy data plane via SSH
