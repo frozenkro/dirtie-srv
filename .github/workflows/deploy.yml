@@ -34,7 +34,7 @@ jobs:
     - name: Create dirs
       run: |
         ssh -i ~/.ssh/id_ed25519 ${{ vars.HOST_USER }}@${{ vars.HOST_IP }} << 'EOF'
-        mkdir -p {~/app,~/k8s}
+        mkdir -p {~/app,~/k8s,~/app/mosquitto/config}
 
     - name: Create .env
       run: |
@@ -58,6 +58,12 @@ jobs:
         scp -i ~/.ssh/id_ed25519 \
           docker-compose.prod.yaml \
           ${{ vars.HOST_USER }}@${{ vars.HOST_IP }}:~/app/docker-compose.yaml
+
+    - name: Copy mosquitto config
+      run: |
+        scp -i ~/.ssh/id_ed25519 -r \
+          mosquitto/config/mosquitto.conf \
+          ${{ vars.HOST_USER }}@${{ vars.HOST_IP }}:~/app/mosquitto/config/
 
     - name: Copy k8s manifests
       run: |
