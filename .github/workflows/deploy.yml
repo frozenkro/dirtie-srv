@@ -36,22 +36,44 @@ jobs:
         ssh -i ~/.ssh/id_ed25519 ${{ vars.HOST_USER }}@${{ vars.HOST_IP }} << 'EOF'
         mkdir -p {~/app,~/k8s,~/app/mosquitto/config}
 
+    - name: Check if InfluxDB is already initialized
+      id: influx_init
+      run: |
+        EXISTS=$(ssh -i ~/.ssh/id_ed25519 ${{ vars.HOST_USER }}@${{ vars.HOST_IP }} \
+          'docker volume ls -q | grep -E "^app_influxdb-data$" || true')
+        if [ -z "$EXISTS" ]; then
+          echo "init_needed=true" >> $GITHUB_OUTPUT
+        else
+          echo "init_needed=false" >> $GITHUB_OUTPUT
+        fi
+
     - name: Create .env
       run: |
-        ssh -i ~/.ssh/id_ed25519 ${{ vars.HOST_USER }}@${{ vars.HOST_IP }} << 'EOF'
+        INIT_MODE="${{ steps.influx_init.outputs.init_needed == 'true' && 'setup' || '' }}"
+
+        ssh -i ~/.ssh/id_ed25519 ${{ vars.HOST_USER }}@${{ vars.HOST_IP }} << EOF
         cat > ~/app/.env << 'INNER'
         INFLUX_ORG=${{ vars.INFLUX_ORG }}
         INFLUX_DEFAULT_BUCKET=${{ vars.INFLUX_DEFAULT_BUCKET }}
         INFLUX_TOKEN=${{ secrets.INFLUX_TOKEN }}
         INFLUX_USERNAME=${{ vars.INFLUX_USERNAME }}
         INFLUX_PASSWORD=${{ secrets.INFLUX_PASSWORD }}
-
+        $( [ "$INIT_MODE" = "setup" ] && cat << 'INIT'
+        DOCKER_INFLUXDB_INIT_MODE=setup
+        DOCKER_INFLUXDB_INIT_USERNAME=${{ vars.INFLUX_USERNAME }}
+        DOCKER_INFLUXDB_INIT_PASSWORD=${{ secrets.INFLUX_PASSWORD }}
+        DOCKER_INFLUXDB_INIT_ORG=${{ vars.INFLUX_ORG }}
+        DOCKER_INFLUXDB_INIT_BUCKET=${{ vars.INFLUX_DEFAULT_BUCKET }}
+        DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${{ secrets.INFLUX_TOKEN }}
+        INIT
+        )
         POSTGRES_SERVER=${{ vars.POSTGRES_SERVER }}
         POSTGRES_DB=${{ vars.POSTGRES_DB }}
         POSTGRES_USER=${{ vars.POSTGRES_USER }}
         POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
         INNER
         EOF
+
 
     - name: Copy docker-compose.prod.yaml
       run: |
