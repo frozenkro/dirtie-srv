@@ -40,8 +40,8 @@ type DeviceSvc struct {
 }
 
 type DevicePrvPayload struct {
-	MacAddr  string
-	Contract string
+	MacAddr  string `json:"macAddr"`
+	Contract string `json:"contract"`
 }
 
 func NewDeviceSvc(deviceReader DeviceReader,
