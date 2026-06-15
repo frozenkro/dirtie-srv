@@ -29,9 +29,9 @@ type BrdCrmSvc struct {
 	DeviceGetter  DeviceGetter
 }
 type BreadCrumb struct {
-	MacAddr     string
-	Capacitance int64
-	Temperature int64
+	MacAddr     string `json:"macAddr"`
+	Capacitance int64  `json:"capacitance"`
+	Temperature int64  `json:"temperature"`
 }
 
 func NewBrdCrmSvc(dataRec DeviceDataRecorder, dataRet DeviceDataRetriever, deviceGetter DeviceGetter) BrdCrmSvc {
