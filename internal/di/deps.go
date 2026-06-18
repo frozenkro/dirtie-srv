@@ -30,6 +30,7 @@ type Deps struct {
 	UserRepo    repos.UserRepo
 
 	InfluxRepo db.InfluxRepo
+	LokiClient db.LokiClient
 
 	EmailUtil utils.EmailUtil
 	HtmlUtil  utils.HtmlUtil
@@ -51,6 +52,7 @@ func NewDeps(ctx context.Context) *Deps {
 	userRepo := rf.NewUserRepo()
 
 	influxRepo := db.NewInfluxRepo()
+	lokiClient := db.NewLokiClient()
 
 	emailUtil := &utils.EmailUtil{}
 	htmlUtil := &utils.HtmlUtil{}
@@ -77,6 +79,8 @@ func NewDeps(ctx context.Context) *Deps {
 	)
 	logDumpSvc := services.NewLogDumpSvc(
 		deviceSvc,
+		deviceSvc,
+		lokiClient,
 	)
 	dataSvc := services.NewDataSvc(
 		influxRepo)
@@ -102,5 +106,6 @@ func NewDeps(ctx context.Context) *Deps {
 		HtmlUtil:       *htmlUtil,
 		CtxUtil:        *ctxUtil,
 		InfluxRepo:     influxRepo,
+		LokiClient: 		*lokiClient,
 	}
 }

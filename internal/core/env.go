@@ -26,6 +26,7 @@ var (
 	DIRTIE_ENV       string
 	DOMAIN           string
 	SENDGRID_API_KEY string
+	LOKI_URL         string
 
 	IS_TEST bool = false
 )
@@ -72,4 +73,5 @@ func SetupEnv() {
 	DIRTIE_ENV = os.Getenv("DIRTIE_ENV")
 	DOMAIN = os.Getenv("DOMAIN")
 	SENDGRID_API_KEY = os.Getenv("SENDGRID_API_KEY")
+	LOKI_URL = os.Getenv("LOKI_URL")
 }

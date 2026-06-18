@@ -62,8 +62,9 @@ func (s BrdCrmSvc) RecordBrdCrm(ctx context.Context, brdCrm BreadCrumb) error {
 	if err != nil {
 		return fmt.Errorf("Error RecordBrdCrm -> GetDeviceByMacAddr: \n%w\n", err)
 	}
+
+	// Lazy provisioning
 	if dvc.DeviceID <= 0 {
-		// TODO lazy provisioning
 		payload := DevicePrvPayload{MacAddr: brdCrm.MacAddr, Contract: brdCrm.Contract}
 		ps, err := s.PrvCompleter.CompleteDeviceProvision(ctx, payload)
 		if err != nil {
