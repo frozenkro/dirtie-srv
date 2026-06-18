@@ -17,23 +17,20 @@ services:
     env_file:
       .env
 
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "10.0.0.1:3100:3100"
+    volumes:
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+
   grafana:
     image: grafana/grafana-oss
     ports:
-      - "3000:3000"
+      - "10.0.0.1:3000:3000"
     volumes:
       - grafana:/var/lib/grafana
-
-  postgres:
-    image: postgres:16.4
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
 volumes:
   mosquitto:
@@ -43,3 +40,4 @@ volumes:
   grafana:
   postgres-data:
     driver: local
+  loki-data:

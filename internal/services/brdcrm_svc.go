@@ -23,19 +23,34 @@ type DeviceDataRetriever interface {
 	GetValuesRange(ctx context.Context, deviceId int, measurementKey string, start time.Time, end time.Time) ([]db.DeviceDataPoint, error)
 }
 
+type DevicePrvCompleter interface {
+	CompleteDeviceProvision(context.Context, DevicePrvPayload) (sqlc.Device, error)
+}
+
 type BrdCrmSvc struct {
 	DataRecorder  DeviceDataRecorder
 	DataRetriever DeviceDataRetriever
 	DeviceGetter  DeviceGetter
+	PrvCompleter  DevicePrvCompleter
 }
 type BreadCrumb struct {
 	MacAddr     string `json:"macAddr"`
+	Contract    string `json:"contract"`
 	Capacitance int64  `json:"capacitance"`
 	Temperature int64  `json:"temperature"`
 }
 
-func NewBrdCrmSvc(dataRec DeviceDataRecorder, dataRet DeviceDataRetriever, deviceGetter DeviceGetter) BrdCrmSvc {
-	return BrdCrmSvc{DataRecorder: dataRec, DataRetriever: dataRet, DeviceGetter: deviceGetter}
+func NewBrdCrmSvc(dataRec DeviceDataRecorder, 
+	dataRet DeviceDataRetriever, 
+	deviceGetter DeviceGetter, 
+	prvCompleter DevicePrvCompleter,
+) BrdCrmSvc {
+	return BrdCrmSvc{
+		DataRecorder: dataRec, 
+		DataRetriever: dataRet, 
+		DeviceGetter: deviceGetter,
+		PrvCompleter: prvCompleter,
+	}
 }
 
 var (
@@ -48,7 +63,16 @@ func (s BrdCrmSvc) RecordBrdCrm(ctx context.Context, brdCrm BreadCrumb) error {
 		return fmt.Errorf("Error RecordBrdCrm -> GetDeviceByMacAddr: \n%w\n", err)
 	}
 	if dvc.DeviceID <= 0 {
-		return fmt.Errorf("Error in RecordBrdCrm (macAddr: %v): \n%w\n", brdCrm.MacAddr, ErrNoDevice)
+		// TODO lazy provisioning
+		payload := DevicePrvPayload{MacAddr: brdCrm.MacAddr, Contract: brdCrm.Contract}
+		ps, err := s.PrvCompleter.CompleteDeviceProvision(ctx, payload)
+		if err != nil {
+			return fmt.Errorf("Error RecordBrdCrm -> GetProvisionStagingByContract: \n%w\n", err)
+		}
+		if ps.MacAddr.String == "" {
+			// No device or provision staging record found for this contract / mac address
+			return fmt.Errorf("Error in RecordBrdCrm (macAddr: %v): \n%w\n", brdCrm.MacAddr, ErrNoDevice)
+		}
 	}
 
 	err = s.DataRecorder.Record(ctx, int(dvc.DeviceID), core.Capacitance, brdCrm.Capacitance)

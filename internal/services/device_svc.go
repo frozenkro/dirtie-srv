@@ -106,6 +106,9 @@ func (s DeviceSvc) CompleteDeviceProvision(ctx context.Context, data DevicePrvPa
 	if err != nil {
 		return sqlc.Device{}, fmt.Errorf("Error CompleteDeviceProvision -> GetProvisionStagingByContract: \n%w\n", err)
 	}
+	if prv.Contract.String == "" {
+		return sqlc.Device{}, fmt.Errorf("Error CompleteDeviceProvision -> GetProvisionStagingByContract: No Provision Staging record found")
+	}
 
 	// update mac address of device record
 	err = s.deviceWriter.UpdateDeviceMacAddress(ctx, prv.DeviceID, data.MacAddr)

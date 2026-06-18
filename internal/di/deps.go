@@ -7,18 +7,21 @@ import (
 	"github.com/frozenkro/dirtie-srv/internal/db"
 	"github.com/frozenkro/dirtie-srv/internal/db/repos"
 	"github.com/frozenkro/dirtie-srv/internal/hub/topics/brdcrmtopic"
+	"github.com/frozenkro/dirtie-srv/internal/hub/topics/logdumptopic"
 	"github.com/frozenkro/dirtie-srv/internal/hub/topics/prvtopic"
 	"github.com/frozenkro/dirtie-srv/internal/services"
 )
 
 type Deps struct {
 	BrdCrmTopic    *brdcrmtopic.BrdCrmTopic
+	LogDumpTopic   *logdumptopic.LogDumpTopic
 	ProvisionTopic *prvtopic.ProvisionTopic
 
-	AuthSvc   services.AuthSvc
-	BrdCrmSvc services.BrdCrmSvc
-	DataSvc   services.DataSvc
-	DeviceSvc services.DeviceSvc
+	AuthSvc    services.AuthSvc
+	BrdCrmSvc  services.BrdCrmSvc
+	DataSvc    services.DataSvc
+	DeviceSvc  services.DeviceSvc
+	LogDumpSvc services.LogDumpSvc
 
 	DeviceRepo  repos.DeviceRepo
 	ProvStgRepo repos.ProvisionStagingRepo
@@ -69,15 +72,22 @@ func NewDeps(ctx context.Context) *Deps {
 	brdCrmSvc := services.NewBrdCrmSvc(
 		influxRepo,
 		influxRepo,
-		deviceSvc)
+		deviceSvc,
+		deviceSvc,
+	)
+	logDumpSvc := services.NewLogDumpSvc(
+		deviceSvc,
+	)
 	dataSvc := services.NewDataSvc(
 		influxRepo)
 
 	brdCrmTopic := brdcrmtopic.NewBrdCrmTopic(brdCrmSvc)
+	logDumpTopic := logdumptopic.NewLogDumpTopic(logDumpSvc)
 	prvTopic := prvtopic.NewProvisionTopic(*deviceSvc)
 
 	return &Deps{
 		BrdCrmTopic:    brdCrmTopic,
+		LogDumpTopic:   logDumpTopic,
 		ProvisionTopic: prvTopic,
 		AuthSvc:        authSvc,
 		BrdCrmSvc:      brdCrmSvc,

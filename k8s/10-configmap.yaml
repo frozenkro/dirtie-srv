@@ -13,3 +13,4 @@ data:
   MOSQUITTO_URI: "10.0.0.1:1883"
   APP_HOST: "container"
   ASSETS_DIR: "./assets/"
+  LOKI_URL: "http://10.0.0.1:3100"

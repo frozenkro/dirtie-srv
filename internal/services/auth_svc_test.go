@@ -174,19 +174,19 @@ func TestValidateToken(t *testing.T) {
 }
 
 func TestLogout(t *testing.T) {
-  ctx := context.Background()
+	ctx := context.Background()
 	setupAuthSvcTests()
 
-  t.Run("Success", func(t *testing.T) {
-    token := "test_token"
-    session := sqlc.Session{ UserID: 42069 }
+	t.Run("Success", func(t *testing.T) {
+		token := "test_token"
+		session := sqlc.Session{UserID: 42069}
 
-    sessionReader.On("GetSession", ctx, token).Return(session, nil)
-    sessionWriter.On("DeleteUserSessions", ctx, session.UserID).Return(nil)
+		sessionReader.On("GetSession", ctx, token).Return(session, nil)
+		sessionWriter.On("DeleteUserSessions", ctx, session.UserID).Return(nil)
 
-    err := authSvc.Logout(ctx, token)
-    assert.Nil(t, err)
-    sessionReader.AssertExpectations(t)
-    sessionWriter.AssertExpectations(t)
-  })
+		err := authSvc.Logout(ctx, token)
+		assert.Nil(t, err)
+		sessionReader.AssertExpectations(t)
+		sessionWriter.AssertExpectations(t)
+	})
 }
