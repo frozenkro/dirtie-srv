@@ -7,14 +7,22 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
+	"time"
 
 	"github.com/frozenkro/dirtie-srv/internal/core"
 )
 
-type LokiClient struct{}
+type LokiClient struct{
+	client *http.Client
+}
 
 func NewLokiClient() *LokiClient {
-	return &LokiClient{}
+	return &LokiClient{
+		client: &http.Client{
+			Timeout: 10 * time.Second,
+		},
+	}
 }
 
 type LogSource string
@@ -55,12 +63,17 @@ func (c *LokiClient) PostLogs(data LokiLogData) error {
 	}
 	bReader := bytes.NewReader(b)
 
-	lokiUri, err := url.JoinPath(core.LOKI_URL, "loki", "api", "v1", "push")
+	lokiUri, err := url.JoinPath(strings.Trim(core.LOKI_URL, "/"), "loki", "api", "v1", "push")
 	if err != nil {
 		return fmt.Errorf("Error creating URI in LokiClient.PostLogs: %w\n", err)
 	}
 
-	res, err := http.Post(lokiUri, "application/json", bReader)
+	req, err := http.NewRequest(http.MethodPost, lokiUri, bReader)
+	if err != nil {
+		return fmt.Errorf("Error creating http Request in LokiClient.PostLogs: %w\n", err)
+	}
+
+	res, err := c.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Error pushing logs to Loki in LokiClient.PostLogs: %w\n", err)
 	}

@@ -35,6 +35,7 @@ func NewLogDumpSvc(dg DeviceGetter, dpc DevicePrvCompleter, lp LogPoster) LogDum
 	}
 }
 
+// TODO update this to be a common function with different entry points for device, mobile, app?
 func (s LogDumpSvc) DumpLogs(ctx context.Context, payload LogDumpPayload) error {
 	dvc, err := s.dg.GetDeviceByMacAddress(ctx, payload.MacAddr)
 	if err != nil {
