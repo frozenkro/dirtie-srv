@@ -86,43 +86,42 @@ Rules:
 
 ---
 
-### [AI AGENT] `k8s/60-promtail-daemonset.yaml` — Ship Pod Logs to Loki
+### [AI AGENT] `k8s/60-alloy-daemonset.yaml` — Ship Pod Logs to Loki
 
 Create a new DaemonSet manifest with:
 
 1. **RBAC**
    - `ServiceAccount` in `dirtie` namespace
-   - `ClusterRole`: `get`, `list` on `pods`, `nodes`
+   - `ClusterRole`: `get`, `list`, `watch` on `pods`, `nodes`, `namespaces`
    - `ClusterRoleBinding`
 
 2. **DaemonSet spec**
-   - Image: `grafana/promtail:latest` (multi-arch ARM64)
+   - Image: `grafana/alloy:latest` (multi-arch ARM64)
    - Volume mounts:
      - `hostPath` `/var/log`
-     - `hostPath` `/var/lib/docker/containers` (or containerd equivalent path on k3s)
      - `hostPath` `/var/log/pods`
-   - ConfigMap holding `promtail-config.yaml`
+     - `hostPath` `/run/k3s/containerd` (for containerd CRI)
+   - ConfigMap holding `alloy-config.alloy`
 
-3. **Promtail config key bits**
-   ```yaml
-   clients:
-     - url: http://10.0.0.1:3100/loki/api/v1/push
-   scrape_configs:
-     - job_name: kubernetes-pods
-       kubernetes_sd_configs:
-         - role: pod
-       pipeline_stages:
-         - docker: {}
-       relabel_configs:
-         - source_labels: [__meta_kubernetes_namespace]
-           target_label: namespace
-         - source_labels: [__meta_kubernetes_pod_name]
-           target_label: pod
-         - source_labels: [__meta_kubernetes_container_name]
-           target_label: container
+3. **Alloy config (`alloy-config.alloy`)**
+   ```alloy
+   loki.source.kubernetes "pods" {
+     targets    = discovery.kubernetes.pods.targets
+     forward_to = [loki.write.local_loki.receiver]
+   }
+
+   discovery.kubernetes_pods "pods" {
+     namespaces = ["dirtie"]
+   }
+
+   loki.write "local_loki" {
+     endpoint {
+       url = "http://10.0.0.1:3100/loki/api/v1/push"
+     }
+   }
    ```
 
-Apply with `kubectl apply -f k8s/60-promtail-daemonset.yaml`.
+Apply with `kubectl apply -f k8s/60-alloy-daemonset.yaml`.
 
 ---
 
@@ -148,10 +147,9 @@ Apply with `kubectl apply -f k8s/60-promtail-daemonset.yaml`.
 
 ## ARM64 / Pi Notes
 
-- Loki idle: ~50–100 MB RAM.
-- Promtail per node: ~20–40 MB RAM.
-- Retention: default local config grows until disk runs out. If the Pi SD card is small, add a `--limits.retention=168h` tweak (7 days) later.
-- k3s uses containerd, not Docker. Promtail should mount `/var/log/pods` and `/run/containerd` (or `/run/k3s/containerd`) from the host. Check exact host paths with `ls /run/k3s/containerd/` on a worker node.
+|- Alloy per node: ~30–60 MB RAM.
+|- Alloy per node: ~30–60 MB RAM.
+|- k3s uses containerd, not Docker. Alloy should mount `/var/log/pods` and `/run/k3s/containerd` from the host. Check exact host paths with `ls /run/k3s/containerd/` on a worker node.
 
 ---
 
@@ -159,6 +157,23 @@ Apply with `kubectl apply -f k8s/60-promtail-daemonset.yaml`.
 
 1. `[AI AGENT]` Patch `docker-compose.prod.yaml` and `k8s/10-configmap.yaml`
 2. `[USER]` Deploy data plane: `docker compose up -d` on rpic1
-3. `[USER]` `kubectl apply -f k8s/` (ConfigMap + new Promtail manifest)
+3. `[USER]` `kubectl apply -f k8s/` (ConfigMap + new Alloy manifest)
 4. `[AI AGENT]` Implement `logdumpsvc.go` Loki pusher
 5. `[USER]` Rollout restart app, verify Grafana datasource, test log flow
+
+---
+
+## Architecture Evolution: Decoupling Observability
+
+**Current State:** Observability stack (Loki) runs on `rpi1` alongside the application.
+
+**Proposed Exploration: Dedicated Monitoring Node**
+Moving the observability stack to a separate server (e.g., a dedicated "monitoring" Pi or an existing Linux machine) provides:
+
+- **Resource Isolation:** Prevents Prometheus/Loki RAM usage from causing OOM kills on the main application service.
+- **Resilience:** The monitoring stack remains operational even if `rpi1` is down or being redeployed.
+- **Centralization:** A single endpoint to monitor multiple different projects/servers across the homelab.
+
+**Challenges to Evaluate:**
+- **Networking:** Requires stable connectivity and appropriate firewall/port rules between `rpi-app` and `rpi-monitor`.
+- **Complexity:** Managing an additional OS, updates, and backups for a second node.

@@ -1,0 +1,116 @@
+# ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: alloy
+  namespace: dirtie
+---
+# ClusterRole for Alloy to discover pods
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: alloy-discovery
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "nodes", "namespaces"]
+    verbs: ["get", "list", "watch"]
+---
+# ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: alloy-discovery
+subjects:
+  - kind: ServiceAccount
+    name: alloy
+    namespace: dirtie
+roleRef:
+  kind: ClusterRole
+  name: alloy-discovery
+  apiGroup: rbac.authorization.k8s.io
+---
+# ConfigMap holding the Alloy river config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-config
+  namespace: dirtie
+data:
+  alloy.river: |
+    loki.source.kubernetes "pods" {
+      static_labels = {
+        import = "kubernetes",
+      }
+      safe_mode    = true
+      forward_to   = [loki.write.local_loki.receiver]
+
+      bearer_token_file      = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+      kubernetes_service_url = "https://" + env("KUBERNETES_SERVICE_HOST") + ":" + env("KUBERNETES_SERVICE_PORT")
+      ca_file                = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+      insecure_skip_verify   = true
+
+      namespaces = ["dirtie"]
+    }
+
+    loki.write "local_loki" {
+      endpoint {
+        url = "http://10.0.0.1:3100/loki/api/v1/push"
+      }
+      external_labels = {
+        source = "kubernetes",
+      }
+    }
+---
+# DaemonSet - one Alloy per node
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: alloy
+  namespace: dirtie
+spec:
+  selector:
+    matchLabels:
+      app: alloy
+  template:
+    metadata:
+      labels:
+        app: alloy
+    spec:
+      serviceAccountName: alloy
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      containers:
+        - name: alloy
+          image: grafana/alloy:latest
+          args:
+            - run
+            - /etc/alloy/alloy.river
+            - --server.http.listen-addr=0.0.0.0:12345
+          ports:
+            - containerPort: 12345
+              name: http
+          volumeMounts:
+            - name: alloy-config
+              mountPath: /etc/alloy
+            - name: varlog
+              mountPath: /var/log
+              readOnly: true
+            - name: varlibcontainerd
+              mountPath: /var/lib/containerd
+              readOnly: true
+            - name: run-containerd
+              mountPath: /run/k3s/containerd
+              readOnly: true
+      volumes:
+        - name: alloy-config
+          configMap:
+            name: alloy-config
+        - name: varlog
+          hostPath:
+            path: /var/log
+        - name: varlibcontainerd
+          hostPath:
+            path: /var/lib/containerd
+        - name: run-containerd
+          hostPath:
+            path: /run/k3s/containerd
